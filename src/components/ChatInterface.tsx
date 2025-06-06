@@ -182,6 +182,19 @@ const FeedbackButtons = styled(Box)(({ theme }) => ({
 }));
 
 const Feedback: React.FC<FeedbackProps & { feedbackSubmitted?: boolean }> = ({ onFeedbackSubmit, feedbackSubmitted }) => {
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+
+  const handleFeedback = (isPositive: boolean) => {
+    const newFeedback = isPositive ? 'up' : 'down';
+    // If clicking the same button again, reset the state
+    if (feedback === newFeedback) {
+      setFeedback(null);
+    } else {
+      setFeedback(newFeedback);
+      onFeedbackSubmit(isPositive);
+    }
+  };
+
   return (
     <FeedbackButtons>
       {!feedbackSubmitted ? (
@@ -192,19 +205,27 @@ const Feedback: React.FC<FeedbackProps & { feedbackSubmitted?: boolean }> = ({ o
           <Tooltip title="Yes, this helped">
             <IconButton 
               size="small" 
-              onClick={() => onFeedbackSubmit(true)}
-              sx={{ color: 'success.main' }}
+              onClick={() => handleFeedback(true)}
             >
-              <ThumbUpIcon fontSize="small" />
+              <ThumbUpIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: feedback === 'up' ? 'success.main' : 'inherit'
+                }} 
+              />
             </IconButton>
           </Tooltip>
           <Tooltip title="No, I need more help">
             <IconButton 
               size="small" 
-              onClick={() => onFeedbackSubmit(false)}
-              sx={{ color: 'error.main' }}
+              onClick={() => handleFeedback(false)}
             >
-              <ThumbDownIcon fontSize="small" />
+              <ThumbDownIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: feedback === 'down' ? 'error.main' : 'inherit'
+                }} 
+              />
             </IconButton>
           </Tooltip>
         </>
