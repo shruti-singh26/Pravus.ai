@@ -56,8 +56,8 @@ This is the backend server for the Pravus.AI chatbot for electronic manuals.
 - **Embedding Deployment**: Your embedding model deployment name
 
 ### Model Recommendations
-- **Chat**: gpt-4.1-mini deployment
-- **Embeddings**: text-embedding-3-small deployment
+- **Chat**: GPT-3.5-turbo or GPT-4 deployment
+- **Embeddings**: text-embedding-ada-002 deployment
 
 ## Cost Considerations
 
