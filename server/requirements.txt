@@ -11,4 +11,3 @@ pydantic==1.10.8
 requests==2.31.0
 langdetect==1.0.9
 googletrans==3.1.0a0
-openai==0.28.1
