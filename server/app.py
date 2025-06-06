@@ -695,7 +695,7 @@ Summary:"""
         try:
             summary = llm_service.generate_direct_response(
                 prompt=prompt,
-                max_tokens=300,  # Limit summary length
+                max_tokens=500,  # Limit summary length
                 temperature=0.3  # Lower temperature for more focused summaries
             )
             
