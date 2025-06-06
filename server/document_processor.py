@@ -19,26 +19,26 @@ from config import (
     LLM_PROVIDER,
     DEFAULT_CHUNK_SIZE,
     DEFAULT_CHUNK_OVERLAP,
+    OPENAI_API_KEY,
+    OPENAI_EMBEDDING_MODEL,
+    OPENAI_EMBEDDING_DIMENSIONS,
     AZURE_OPENAI_API_KEY,
     AZURE_OPENAI_ENDPOINT,
     AZURE_OPENAI_API_VERSION,
     AZURE_OPENAI_EMBEDDING_DEPLOYMENT
 )
 
-class AzureOpenAIEmbeddings:
-    """Azure OpenAI embeddings class with cost optimization and error handling."""
+class OpenAIEmbeddings:
+    """OpenAI embeddings class with cost optimization and error handling."""
     
     def __init__(self):
-        if not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
-            raise ValueError("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT are required. Please set your Azure OpenAI configuration.")
+        if not OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY is required. Please set your OpenAI API key in the environment variables.")
         
-        openai.api_type = "azure"
-        openai.api_version = AZURE_OPENAI_API_VERSION
-        openai.api_base = AZURE_OPENAI_ENDPOINT
-        openai.api_key = AZURE_OPENAI_API_KEY
-        
-        self.deployment_name = AZURE_OPENAI_EMBEDDING_DEPLOYMENT
-        print(f"Initialized Azure OpenAI embeddings with deployment: {self.deployment_name}")
+        openai.api_key = OPENAI_API_KEY
+        self.model = OPENAI_EMBEDDING_MODEL
+        self.dimensions = OPENAI_EMBEDDING_DIMENSIONS
+        print(f"Initialized OpenAI embeddings with model: {self.model} ({self.dimensions} dimensions)")
     
     def _make_embedding_request(self, texts: List[str], retry_count: int = 3):
         """Make embedding request with retry logic and rate limiting."""
@@ -46,7 +46,7 @@ class AzureOpenAIEmbeddings:
             try:
                 response = openai.Embedding.create(
                     input=texts,
-                    engine=self.deployment_name  # Use engine for Azure
+                    model=self.model
                 )
                 return response
             except openai.error.RateLimitError as e:
@@ -68,16 +68,16 @@ class AzureOpenAIEmbeddings:
             except Exception as e:
                 if attempt < retry_count - 1:
                     wait_time = 1 + attempt
-                    print(f"      ⏳ Azure OpenAI API error: {str(e)}, retrying in {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
+                    print(f"      ⏳ OpenAI API error: {str(e)}, retrying in {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
                     time.sleep(wait_time)
                 else:
-                    print(f"      ❌ Azure OpenAI API error after {retry_count} attempts: {str(e)}")
+                    print(f"      ❌ OpenAI API error after {retry_count} attempts: {str(e)}")
                     raise e
     
     def embed_documents(self, texts: List[str]) -> np.ndarray:
-        """Convert documents to Azure OpenAI embeddings with adaptive batch processing."""
+        """Convert documents to OpenAI embeddings with adaptive batch processing."""
         if not texts:
-            return np.zeros((1, 1536), dtype=np.float32)  # Azure OpenAI embeddings are 1536-dimensional
+            return np.zeros((1, self.dimensions), dtype=np.float32)
         
         print(f"🧠 Generating embeddings for {len(texts)} text chunks...")
         
@@ -126,7 +126,7 @@ class AzureOpenAIEmbeddings:
                     print(f"   📉 Reducing batch size to {current_batch_size} due to errors")
                 
                 # Add zero vectors for failed batch and continue
-                batch_embeddings = [np.zeros(1536).tolist() for _ in batch]  # Azure OpenAI embeddings are 1536-dimensional
+                batch_embeddings = [np.zeros(self.dimensions).tolist() for _ in batch]
                 all_embeddings.extend(batch_embeddings)
                 i += len(batch)
         
@@ -135,9 +135,9 @@ class AzureOpenAIEmbeddings:
         return embeddings_array
     
     def embed_query(self, text: str) -> np.ndarray:
-        """Convert query to Azure OpenAI embedding."""
+        """Convert query to OpenAI embedding."""
         if not text:
-            return np.zeros(1536, dtype=np.float32)  # Azure OpenAI embeddings are 1536-dimensional
+            return np.zeros(self.dimensions, dtype=np.float32)
         
         try:
             response = self._make_embedding_request([text])
@@ -145,53 +145,202 @@ class AzureOpenAIEmbeddings:
             return np.array(embedding, dtype=np.float32)
         except Exception as e:
             print(f"Error embedding query: {str(e)}")
-            return np.zeros(1536, dtype=np.float32)  # Azure OpenAI embeddings are 1536-dimensional
+            return np.zeros(self.dimensions, dtype=np.float32)
+
+class AzureOpenAIEmbeddings:
+    """Azure OpenAI embeddings class with cost optimization and error handling."""
+
+    def __init__(self):
+        if not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
+            raise ValueError("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT are required. Please set your Azure OpenAI configuration in the environment variables.")
+
+        # Configure Azure OpenAI
+        openai.api_type = "azure"
+        openai.api_key = AZURE_OPENAI_API_KEY
+        openai.api_base = AZURE_OPENAI_ENDPOINT
+        openai.api_version = AZURE_OPENAI_API_VERSION
+
+        self.deployment_name = AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+        self.dimensions = OPENAI_EMBEDDING_DIMENSIONS  # Azure OpenAI uses same dimensions
+        print(f"Initialized Azure OpenAI embeddings with deployment: {self.deployment_name} ({self.dimensions} dimensions)")
+
+    def _make_embedding_request(self, texts: List[str], retry_count: int = 3):
+        """Make embedding request with retry logic and rate limiting."""
+        for attempt in range(retry_count):
+            try:
+                response = openai.Embedding.create(
+                    input=texts,
+                    engine=self.deployment_name  # Use engine for Azure
+                )
+                return response
+            except openai.error.RateLimitError as e:
+                if attempt < retry_count - 1:
+                    wait_time = (2 ** attempt) + 1  # Exponential backoff with minimum 1 second
+                    print(f"      ⏳ Rate limit hit, waiting {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"      ❌ Rate limit exceeded after {retry_count} attempts")
+                    raise e
+            except openai.error.Timeout as e:
+                if attempt < retry_count - 1:
+                    wait_time = 3 + attempt  # Longer wait for timeouts
+                    print(f"      ⏳ Request timeout, waiting {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"      ❌ Request timeout after {retry_count} attempts")
+                    raise e
+            except Exception as e:
+                if attempt < retry_count - 1:
+                    wait_time = 1 + attempt
+                    print(f"      ⏳ Azure OpenAI API error: {str(e)}, retrying in {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
+                    time.sleep(wait_time)
+                else:
+                    print(f"      ❌ Azure OpenAI API error after {retry_count} attempts: {str(e)}")
+                    raise e
+
+    def embed_documents(self, texts: List[str]) -> np.ndarray:
+        """Convert documents to Azure OpenAI embeddings with adaptive batch processing."""
+        if not texts:
+            return np.zeros((1, self.dimensions), dtype=np.float32)
+
+        print(f"🧠 Generating embeddings for {len(texts)} text chunks using Azure OpenAI...")
+
+        # Adaptive batch sizing - start large, reduce if errors occur
+        initial_batch_size = 75  # Start with 75 (between 50 and 100)
+        min_batch_size = 25      # Minimum batch size if errors persist
+        current_batch_size = initial_batch_size
+        consecutive_errors = 0
+
+        all_embeddings = []
+        i = 0
+
+        while i < len(texts):
+            batch = texts[i:i + current_batch_size]
+            batch_num = len(all_embeddings) // initial_batch_size + 1
+            total_estimated_batches = (len(texts) + initial_batch_size - 1) // initial_batch_size
+
+            print(f"   Processing batch {batch_num} with size {current_batch_size} ({len(batch)} chunks)")
+
+            try:
+                response = self._make_embedding_request(batch)
+                batch_embeddings = [item['embedding'] for item in response['data']]
+                all_embeddings.extend(batch_embeddings)
+                print(f"   ✅ Batch completed successfully")
+
+                # Success - can try increasing batch size next time
+                consecutive_errors = 0
+                if current_batch_size < initial_batch_size:
+                    current_batch_size = min(current_batch_size + 10, initial_batch_size)
+                    print(f"   📈 Increasing batch size to {current_batch_size}")
+
+                # Move to next batch
+                i += len(batch)
+
+                # Small delay between batches to be respectful to API
+                if i < len(texts):
+                    time.sleep(0.05)  # Reduced delay for speed
+
+            except Exception as e:
+                print(f"   ❌ Error processing batch: {str(e)}")
+                consecutive_errors += 1
+
+                # Reduce batch size if getting errors
+                if consecutive_errors >= 2 and current_batch_size > min_batch_size:
+                    current_batch_size = max(current_batch_size // 2, min_batch_size)
+                    print(f"   📉 Reducing batch size to {current_batch_size} due to errors")
+
+                # Add zero vectors for failed batch and continue
+                batch_embeddings = [np.zeros(self.dimensions).tolist() for _ in batch]
+                all_embeddings.extend(batch_embeddings)
+                i += len(batch)
+
+        embeddings_array = np.array(all_embeddings, dtype=np.float32)
+        print(f"✅ Generated {len(embeddings_array)} embeddings with shape {embeddings_array.shape}")
+        return embeddings_array
+
+    def embed_query(self, text: str) -> np.ndarray:
+        """Convert query to Azure OpenAI embedding."""
+        if not text:
+            return np.zeros(self.dimensions, dtype=np.float32)
+
+        try:
+            response = self._make_embedding_request([text])
+            embedding = response['data'][0]['embedding']
+            return np.array(embedding, dtype=np.float32)
+        except Exception as e:
+            print(f"Error embedding query: {str(e)}")
+            return np.zeros(self.dimensions, dtype=np.float32)
 
 class DocumentProcessor:
-    """Process and manage documents with vector search capabilities."""
+    """Handles PDF processing, chunking, and embedding using OpenAI embeddings."""
     
     def __init__(self):
-        """Initialize the document processor with vector store."""
-        self.documents = []
-        self.metadata = {}
-        self.embeddings = AzureOpenAIEmbeddings()
-        self.embedding_dimensions = 1536  # Azure OpenAI embeddings are 1536-dimensional
+        self.upload_dir = UPLOAD_FOLDER
+        self.vector_db_dir = VECTOR_DB_PATH
         
-        # Create vector store directory if it doesn't exist
-        os.makedirs(VECTOR_DB_PATH, exist_ok=True)
+        # Create directories if they don't exist
+        os.makedirs(self.upload_dir, exist_ok=True)
+        os.makedirs(self.vector_db_dir, exist_ok=True)
         
-        # Load existing documents and metadata
-        self.documents = self._load_documents()
-        self.metadata = self._load_metadata()
+        print("Initializing DocumentProcessor with OpenAI embeddings...")
         
-        # Initialize FAISS index
+        # Initialize OpenAI embeddings
+        try:
+            if LLM_PROVIDER == 'azure_openai':
+                self.embeddings = AzureOpenAIEmbeddings()
+                print("Using Azure OpenAI for embeddings")
+            else:
+                self.embeddings = OpenAIEmbeddings()
+                print("Using regular OpenAI for embeddings")
+            self.embedding_dimensions = OPENAI_EMBEDDING_DIMENSIONS
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+            if LLM_PROVIDER == 'azure_openai':
+                print("Please set your Azure OpenAI configuration environment variables to use Pravus.AI")
+            else:
+                print("Please set your OPENAI_API_KEY environment variable to use Pravus.AI")
+            raise
+        
+        # Initialize single multilingual FAISS index (OpenAI handles all languages well)
         self.index = faiss.IndexFlatL2(self.embedding_dimensions)
         
-        # If we have documents, rebuild the index
-        if self.documents:
-            print(f"Loading {len(self.documents)} existing documents into FAISS index...")
-            texts = [doc.page_content for doc in self.documents]
+        # Load existing index if available
+        index_path = os.path.join(self.vector_db_dir, "manual_index.faiss")
+        if os.path.exists(index_path):
             try:
-                embeddings = self.embeddings.embed_documents(texts)
-                self.index.add(np.array(embeddings).astype('float32'))
-                print("✅ FAISS index loaded successfully")
+                loaded_index = faiss.read_index(index_path)
+                if loaded_index.d == self.embedding_dimensions:
+                    self.index = loaded_index
+                    print(f"Loaded existing index with {loaded_index.ntotal} vectors")
+                else:
+                    print(f"Dimension mismatch in saved index. Expected {self.embedding_dimensions}, got {loaded_index.d}. Creating new index.")
             except Exception as e:
-                print(f"❌ Error loading FAISS index: {str(e)}")
-                # If loading fails, start with empty index
-                self.index = faiss.IndexFlatL2(self.embedding_dimensions)
-                self.documents = []
-                self.metadata = {}
+                print(f"Error loading index: {str(e)}. Creating new index.")
         
-        print(f"DocumentProcessor initialization complete with {len(self.documents)} documents using Azure OpenAI embeddings.")
+        # Load documents and metadata
+        print("Loading documents and metadata...")
+        self.documents = self._load_documents() or []
+        self.metadata = self._load_metadata() or {}
+        
+        # Validate consistency between documents and index
+        if self.documents and self.index.ntotal != len(self.documents):
+            print(f"⚠️  Inconsistency detected: {len(self.documents)} documents but {self.index.ntotal} vectors in index")
+            print("This is normal on first load or after updates. Index will be rebuilt when needed.")
+            # Note: We don't rebuild here to avoid unnecessary processing on every startup
+            # The index will be rebuilt only when actually needed (e.g., during search if mismatch detected)
+        elif self.documents:
+            print(f"✅ Consistency check passed: {len(self.documents)} documents match {self.index.ntotal} vectors")
+        
+        print(f"DocumentProcessor initialization complete with {len(self.documents)} documents using OpenAI embeddings.")
     
     def _save_index(self):
         """Save FAISS index to disk with proper error handling."""
         try:
             # Ensure the directory exists
-            os.makedirs(VECTOR_DB_PATH, exist_ok=True)
+            os.makedirs(self.vector_db_dir, exist_ok=True)
             
             # Use proper path normalization for Windows
-            index_path = os.path.normpath(os.path.join(VECTOR_DB_PATH, "manual_index.faiss"))
+            index_path = os.path.normpath(os.path.join(self.vector_db_dir, "manual_index.faiss"))
             
             # Create a temporary file first to avoid corruption
             temp_path = index_path + ".tmp"
@@ -215,7 +364,7 @@ class DocumentProcessor:
         except Exception as e:
             print(f"❌ Error saving FAISS index: {str(e)}")
             # Clean up temp file if it exists
-            temp_path = os.path.normpath(os.path.join(VECTOR_DB_PATH, "manual_index.faiss.tmp"))
+            temp_path = os.path.normpath(os.path.join(self.vector_db_dir, "manual_index.faiss.tmp"))
             if os.path.exists(temp_path):
                 try:
                     os.remove(temp_path)
@@ -223,12 +372,13 @@ class DocumentProcessor:
                     pass
             raise Exception(f"Failed to save FAISS index: {str(e)}")
     
+     
     def get_retriever(self):
         return self  # or return a specific retriever object if you have one 
 
     def _load_documents(self) -> List[Document]:
         """Load document chunks if they exist."""
-        doc_path = os.path.join(VECTOR_DB_PATH, "documents.json")
+        doc_path = os.path.join(self.vector_db_dir, "documents.json")
         
         if os.path.exists(doc_path):
             with open(doc_path, 'r', encoding='utf-8') as f:
@@ -246,7 +396,7 @@ class DocumentProcessor:
     
     def _load_metadata(self) -> Dict:
         """Load manual metadata if it exists."""
-        meta_path = os.path.join(VECTOR_DB_PATH, "metadata.json")
+        meta_path = os.path.join(self.vector_db_dir, "metadata.json")
         
         if os.path.exists(meta_path):
             with open(meta_path, 'r', encoding='utf-8') as f:
@@ -257,7 +407,7 @@ class DocumentProcessor:
     def _save_documents(self):
         """Save document chunks to disk with error handling."""
         try:
-            doc_path = os.path.normpath(os.path.join(VECTOR_DB_PATH, "documents.json"))
+            doc_path = os.path.normpath(os.path.join(self.vector_db_dir, "documents.json"))
             
             docs_data = [
                 {
@@ -268,7 +418,7 @@ class DocumentProcessor:
             ]
             
             # Ensure directory exists
-            os.makedirs(VECTOR_DB_PATH, exist_ok=True)
+            os.makedirs(self.vector_db_dir, exist_ok=True)
             
             with open(doc_path, 'w', encoding='utf-8') as f:
                 json.dump(docs_data, f, ensure_ascii=False, indent=2)
@@ -279,10 +429,10 @@ class DocumentProcessor:
     def _save_metadata(self):
         """Save manual metadata to disk with error handling."""
         try:
-            meta_path = os.path.normpath(os.path.join(VECTOR_DB_PATH, "metadata.json"))
+            meta_path = os.path.normpath(os.path.join(self.vector_db_dir, "metadata.json"))
             
             # Ensure directory exists
-            os.makedirs(VECTOR_DB_PATH, exist_ok=True)
+            os.makedirs(self.vector_db_dir, exist_ok=True)
             
             with open(meta_path, 'w', encoding='utf-8') as f:
                 json.dump(self.metadata, f, ensure_ascii=False, indent=2)
@@ -794,7 +944,7 @@ class DocumentProcessor:
             ]
             
             for filename in vector_db_files:
-                file_path = os.path.join(VECTOR_DB_PATH, filename)
+                file_path = os.path.join(self.vector_db_dir, filename)
                 if os.path.exists(file_path):
                     os.remove(file_path)
                     print(f"Deleted {filename}")
@@ -827,7 +977,7 @@ class DocumentProcessor:
             'total_manuals': len(self.metadata),
             'index_size': self.index.ntotal,
             'documents_by_language': language_counts,
-            'embedding_model': AZURE_OPENAI_EMBEDDING_DEPLOYMENT,
+            'embedding_model': OPENAI_EMBEDDING_MODEL,
             'embedding_dimensions': self.embedding_dimensions,
             'manuals': [{
                 'file_id': file_id,

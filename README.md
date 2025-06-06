@@ -1,6 +1,6 @@
 # Pravus.AI Chatbot
 
-A React and Flask application for interacting with electronic manuals, leveraging advanced retrieval-augmented generation (RAG) capabilities with Azure OpenAI.
+A React and Flask application for interacting with electronic manuals, leveraging advanced retrieval-augmented generation (RAG) capabilities with OpenAI embeddings and Deepseek API.
 
 ## Project Structure
 
@@ -10,7 +10,7 @@ The project consists of two parts:
 
 ## Features
 
-- **Smart Manual Search**: Advanced semantic search using Azure OpenAI embeddings with optimized filtering
+- **Smart Manual Search**: Advanced semantic search using OpenAI embeddings with optimized filtering
 - **Brand/Model Specific Search**: Strict filtering to search only within selected manual/model
 - **Chat Interface**: Natural language interaction with electronic manuals
 - **Upload and Management**: Upload and manage multiple PDF manuals with metadata
@@ -26,7 +26,8 @@ The project consists of two parts:
 - Node.js (v14+ recommended)
 - Python (v3.8+ recommended)
 - npm or yarn
-- **Azure OpenAI API access** - Get access at https://azure.microsoft.com/en-us/products/cognitive-services/openai-service
+- **Deepseek API key** (for chat responses) - Get free trial at https://deepseek.com
+- **OpenAI API key** (for embeddings) - Get at https://platform.openai.com
 
 ### Frontend Setup
 
@@ -70,13 +71,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. **IMPORTANT**: Set up your Azure OpenAI configuration by creating a `.env` file in the `server` directory:
+5. **IMPORTANT**: Set up your API keys by creating a `.env` file in the `server` directory:
 ```env
-AZURE_OPENAI_API_KEY=your_api_key_here
-AZURE_OPENAI_ENDPOINT=your_endpoint_here
-AZURE_OPENAI_API_VERSION=your_api_version_here
-AZURE_OPENAI_CHAT_DEPLOYMENT=your_chat_deployment_here
-AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your_embedding_deployment_here
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ⚠️ **Security Note**: Never commit your API keys to version control. The `.env` file should be in your `.gitignore`.
@@ -84,18 +82,12 @@ AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your_embedding_deployment_here
 Alternatively, set environment variables:
 ```bash
 # On Windows
-set AZURE_OPENAI_API_KEY=your_api_key_here
-set AZURE_OPENAI_ENDPOINT=your_endpoint_here
-set AZURE_OPENAI_API_VERSION=your_api_version_here
-set AZURE_OPENAI_CHAT_DEPLOYMENT=your_chat_deployment_here
-set AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your_embedding_deployment_here
+set DEEPSEEK_API_KEY=your_deepseek_api_key_here
+set OPENAI_API_KEY=your_openai_api_key_here
 
 # On macOS/Linux
-export AZURE_OPENAI_API_KEY=your_api_key_here
-export AZURE_OPENAI_ENDPOINT=your_endpoint_here
-export AZURE_OPENAI_API_VERSION=your_api_version_here
-export AZURE_OPENAI_CHAT_DEPLOYMENT=your_chat_deployment_here
-export AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your_embedding_deployment_here
+export DEEPSEEK_API_KEY=your_deepseek_api_key_here
+export OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 6. Run the Flask server:
@@ -117,7 +109,7 @@ The backend API will run on http://localhost:5000
    - **Product Type**: Device category (e.g., "Washing Machine", "Dryer")
    - **Year**: Manufacturing year
    - **Language**: Document language (auto-detected if not specified)
-4. Wait for processing to complete (embeddings are generated using Azure OpenAI)
+4. Wait for processing to complete (embeddings are generated using OpenAI)
 
 ### Chatting with Pravus
 
@@ -131,10 +123,53 @@ The backend API will run on http://localhost:5000
 - **Strict Manual Filtering**: When brand/model is selected, search is limited to that specific manual only
 - **Semantic Search**: Understands context, synonyms, and meaning beyond keywords
 - **Multilingual**: Works across different languages automatically
+- **Performance Optimized**: Fast search with direct manual filtering (no cross-contamination)
+
+## API Endpoints
+
+### Health Check
+- `GET /api/health` - Check system status and loaded models
+
+### Chat
+- `POST /api/chat` - Send message and get response based on uploaded manuals
+  - Body: `{"message": "your question", "brand": "optional", "model": "optional"}`
+
+### File Management
+- `POST /api/upload` - Upload PDF with metadata
+- `GET /api/files` - Get list of all uploaded files
+- `DELETE /api/files/<file_id>` - Delete specific file
+
+### Metadata
+- `GET /api/brands` - Get list of all available brands
+- `GET /api/models` - Get models (optionally filtered by brand)
+
+## RAG Implementation Details
+
+The system uses an advanced retrieval-augmented generation approach with recent optimizations:
+
+### Architecture:
+1. **Document Processing**: PDFs chunked using LangChain with smart text splitting
+2. **Semantic Embeddings**: OpenAI `text-embedding-3-small` model (1536 dimensions)
+3. **Vector Storage**: FAISS for efficient similarity search
+4. **Optimized Retrieval**: Direct manual filtering for performance
+5. **Response Generation**: Deepseek API for contextual answers
+
+### Recent Optimizations:
+- **Direct Manual Filtering**: Eliminates cross-manual contamination
+- **Performance Enhancement**: Searches only relevant document chunks
+- **Smart Scoring**: Content-based boosting for better relevance
+- **Strict Filtering**: When brand/model specified, no fallback to other manuals
+
+### Key Advantages:
+- **High Accuracy**: Superior semantic understanding with OpenAI embeddings
+- **Fast Performance**: Optimized search algorithms
+- **Cost Effective**: Efficient use of `text-embedding-3-small`
+- **Multilingual**: Single index handles multiple languages
+- **Manual Isolation**: Prevents information mixing between different device manuals
 
 ## Testing
 
-To verify the setup:
+The system includes comprehensive testing capabilities. You can test various components:
 
 ```bash
 cd server
@@ -144,18 +179,19 @@ python -c "from document_processor import DocumentProcessor; dp = DocumentProces
 
 ## Cost Considerations
 
-- **Azure OpenAI Usage**: Costs depend on your Azure subscription and chosen models
+- **OpenAI Embeddings**: ~$0.01-0.05 per 200-page manual (one-time cost)
+- **Query Processing**: ~$0.000001 per search query
+- **Deepseek API**: Very cost-effective for chat responses (~$0.001 per response)
 - **Storage**: Local FAISS index (no ongoing costs)
-- Check current pricing at https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
 
 ## Troubleshooting
 
 ### Common Issues:
 
-1. **"No Azure OpenAI configuration"**: Ensure your `.env` file contains valid Azure OpenAI configuration
+1. **"No OpenAI API key"**: Ensure your `.env` file contains valid `OPENAI_API_KEY`
 2. **"No documents found"**: Upload manuals first, ensure they processed successfully
-3. **"Slow search"**: Restart Flask server to use optimized search algorithms
-4. **"Cross-manual results"**: Select specific brand/model for strict filtering
+3. **Slow search**: Restart Flask server to use optimized search algorithms
+4. **Cross-manual results**: Select specific brand/model for strict filtering
 
 ### Performance Tips:
 
@@ -177,4 +213,5 @@ python -c "from document_processor import DocumentProcessor; dp = DocumentProces
 - Real-time collaborative manual analysis
 - Advanced metadata extraction from documents
 - Enhanced filtering and search capabilities
+- Integration with more LLM providers
 

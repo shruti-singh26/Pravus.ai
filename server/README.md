@@ -14,14 +14,21 @@ This is the backend server for the Pravus.AI chatbot for electronic manuals.
 2. Set up environment variables:
    Create a `.env` file in the server directory with the following content:
    
-   ### Azure OpenAI Configuration
+   ### LLM Provider Configuration
    ```
-   # Azure OpenAI Configuration (Required)
-   AZURE_OPENAI_API_KEY=your_api_key_here
-   AZURE_OPENAI_ENDPOINT=your_endpoint_here
-   AZURE_OPENAI_API_VERSION=your_api_version_here
-   AZURE_OPENAI_CHAT_DEPLOYMENT=your_chat_deployment_here
-   AZURE_OPENAI_EMBEDDING_DEPLOYMENT=your_embedding_deployment_here
+   # Choose your LLM provider: 'openai' or 'deepseek'
+   LLM_PROVIDER=openai
+   
+   # OpenAI Configuration (Required for embeddings, optional for chat if using Deepseek)
+   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_CHAT_MODEL=gpt-3.5-turbo
+   OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+   OPENAI_EMBEDDING_DIMENSIONS=1536
+   
+   # Deepseek Configuration (Optional - only if using Deepseek for chat)
+   DEEPSEEK_API_KEY=your_deepseek_api_key_here
+   DEEPSEEK_API_BASE=https://api.deepseek.com/v1
+   DEEPSEEK_MODEL=deepseek-chat
 
    # Storage paths
    VECTOR_DB_PATH=./vector_db
@@ -31,6 +38,21 @@ This is the backend server for the Pravus.AI chatbot for electronic manuals.
    MAX_CONTENT_LENGTH=16777216  # 16MB
    ```
 
+   ### Provider Options:
+   
+   **Option 1: OpenAI Only (Recommended for simplicity)**
+   ```
+   LLM_PROVIDER=openai
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+   
+   **Option 2: Deepseek for Chat + OpenAI for Embeddings (Cost-effective)**
+   ```
+   LLM_PROVIDER=deepseek
+   DEEPSEEK_API_KEY=your_deepseek_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here  # Still needed for embeddings
+   ```
+
 3. Run the server:
    ```
    python app.py
@@ -38,66 +60,51 @@ This is the backend server for the Pravus.AI chatbot for electronic manuals.
 
 ## Features
 
-- PDF processing with text extraction and Azure OpenAI embeddings
-- RAG (Retrieval-Augmented Generation) with Azure OpenAI
+- PDF processing with text extraction and OpenAI embeddings
+- RAG (Retrieval-Augmented Generation) with configurable LLM providers
 - FAISS vector database for fast semantic search
 - Persistent storage of uploaded manuals
 - Intelligent conversation summarization for support tickets
 - Multi-language support
 - Brand/model-specific manual filtering
 
-## Azure OpenAI Configuration
+## LLM Provider Options
 
-### Required Settings
-- **API Key**: Your Azure OpenAI API key
-- **Endpoint**: Your Azure OpenAI service endpoint
-- **API Version**: Azure OpenAI API version (e.g., "2023-05-15")
-- **Chat Deployment**: Your GPT deployment name
-- **Embedding Deployment**: Your embedding model deployment name
+### OpenAI (Default)
+- **Chat Model**: GPT-3.5-turbo (default) or GPT-4
+- **Embeddings**: text-embedding-3-small
+- **Pros**: High quality, reliable, well-tested
+- **Cons**: Higher cost per token
 
-### Model Recommendations
-- **Chat**: GPT-3.5-turbo or GPT-4 deployment
-- **Embeddings**: text-embedding-ada-002 deployment
+### Deepseek
+- **Chat Model**: deepseek-chat
+- **Embeddings**: Uses OpenAI (Deepseek doesn't provide embeddings)
+- **Pros**: Very cost-effective, good performance
+- **Cons**: Requires two API keys (Deepseek + OpenAI)
 
-## Cost Considerations
+## API Configuration
 
-- **Azure OpenAI Usage**: Costs depend on your Azure subscription and chosen models
-- **Storage**: Local FAISS index (no ongoing costs)
-- Check current pricing at https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+### Single Provider (OpenAI)
+Set `LLM_PROVIDER=openai` and provide only `OPENAI_API_KEY`. This uses OpenAI for both chat and embeddings.
 
-## Performance Tips
+### Hybrid Setup (Deepseek + OpenAI)
+Set `LLM_PROVIDER=deepseek` and provide both:
+- `DEEPSEEK_API_KEY` for chat completions
+- `OPENAI_API_KEY` for embeddings (required)
 
-- Use brand/model filtering for faster, more accurate results
-- Keep manual metadata consistent for better organization
-- Batch process documents for efficient embedding generation
-- Includes rate limiting and retry logic for API stability
+**Note**: OpenAI embeddings are always required for document processing, regardless of chat provider.
 
-## Troubleshooting
+## Cost Optimization
 
-### Common Issues:
+- **Most Cost-Effective**: Deepseek for chat + OpenAI embeddings
+- **Simplest Setup**: OpenAI for everything
+- **Performance**: Both providers offer excellent quality
+- Includes batch processing, rate limiting, and retry logic
 
-1. **"No Azure OpenAI configuration"**: Check your `.env` file and environment variables
-2. **"API rate limit"**: Adjust batch sizes or add delay between requests
-3. **"Invalid deployment"**: Verify your deployment names in Azure OpenAI Studio
-4. **"Token limit exceeded"**: Adjust chunk sizes in configuration
+## Switching Providers
 
-### Performance Optimization:
+You can easily switch between providers by changing the `LLM_PROVIDER` environment variable:
+- `LLM_PROVIDER=openai` - Use OpenAI for chat
+- `LLM_PROVIDER=deepseek` - Use Deepseek for chat
 
-- Use appropriate chunk sizes for your content
-- Enable strict filtering for faster searches
-- Monitor Azure OpenAI usage and adjust as needed
-- Regular maintenance of the vector store
-
-## Recent Updates
-
-- ✅ **Azure OpenAI Integration**: Full integration with Azure OpenAI services
-- ✅ **Optimized Search**: Direct manual filtering for better performance
-- ✅ **Enhanced Scoring**: Better relevance ranking with content-based boosting
-- ✅ **Batch Processing**: Efficient document processing with rate limiting
-
-## Future Improvements
-
-- Enhanced Azure OpenAI integration features
-- Advanced metadata extraction
-- Improved multilingual support
-- Extended document format support 
+No code changes required - just restart the server after updating the environment variable. 
