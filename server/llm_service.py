@@ -11,6 +11,10 @@ from config import (
     LLM_PROVIDER,
     OPENAI_API_KEY,
     OPENAI_CHAT_MODEL,
+    AZURE_OPENAI_API_KEY,
+    AZURE_OPENAI_ENDPOINT,
+    AZURE_OPENAI_API_VERSION,
+    AZURE_OPENAI_CHAT_DEPLOYMENT,
     DEEPSEEK_API_KEY,
     DEEPSEEK_API_BASE,
     DEEPSEEK_MODEL,
@@ -211,6 +215,102 @@ class DeepseekLLM(LLM):
                 "Please ensure your Deepseek API key is correctly set up or try again later."
             )
 
+class AzureOpenAILLM(LLM):
+    """Custom LLM for Azure OpenAI API."""
+
+    api_key: str
+    endpoint: str
+    api_version: str
+    deployment_name: str
+    temperature: float = DEFAULT_LLM_TEMPERATURE
+    max_tokens: int = DEFAULT_LLM_MAX_TOKENS
+
+    @property
+    def _llm_type(self) -> str:
+        return "azure_openai"
+
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs,
+    ) -> str:
+        """Call Azure OpenAI API."""
+
+        if not self.api_key or not self.endpoint:
+            return self._generate_fallback_response(prompt)
+
+        try:
+            # Set the API configuration
+            openai.api_type = "azure"
+            openai.api_key = self.api_key
+            openai.api_base = self.endpoint
+            openai.api_version = self.api_version
+
+            # Prepare the messages
+            messages = [
+                {"role": "user", "content": prompt}
+            ]
+
+            print(f"Calling Azure OpenAI with deployment: {self.deployment_name}")
+
+            # Call Azure OpenAI ChatCompletion API
+            response = openai.ChatCompletion.create(
+                engine=self.deployment_name,  # Use engine for Azure
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                stop=stop
+            )
+
+            return response.choices[0].message.content
+
+        except Exception as e:
+            print(f"Azure OpenAI API error: {str(e)}")
+            return self._generate_fallback_response(prompt)
+
+    def _generate_fallback_response(self, prompt: str) -> str:
+        """Generate a fallback response when API calls fail."""
+        print("Generating fallback response without API")
+
+        # Extract the question from the prompt
+        question_match = None
+        if "USER QUESTION:" in prompt:
+            question_match = prompt.split("USER QUESTION:")[-1].strip()
+        elif "USER:" in prompt:
+            question_match = prompt.split("USER:")[-1].strip()
+
+        # See if we can extract some context
+        context_text = ""
+        if "CONTEXT:" in prompt and question_match:
+            context_parts = prompt.split("CONTEXT:")[1].split(question_match)[0].strip()
+            # Extract a sample from the context
+            if len(context_parts) > 200:
+                context_text = context_parts[:200] + "..."
+            else:
+                context_text = context_parts
+
+        # Create a basic response
+        if question_match:
+            if context_text:
+                return (
+                    f"I found some information that might help answer your question. "
+                    f"The relevant part from the manual states: '{context_text}'\n\n"
+                    f"Please note that I'm currently running in fallback mode due to API connectivity issues. "
+                    f"For more detailed information, please try again later."
+                )
+            else:
+                return (
+                    f"I'm currently having trouble accessing the full response capabilities. "
+                    f"Please check that your Azure OpenAI configuration is correctly set up."
+                )
+        else:
+            return (
+                "I'm unable to generate a complete response at the moment due to API connectivity issues. "
+                "Please ensure your Azure OpenAI configuration is correctly set up or try again later."
+            )
+
 class LLMService:
     """Service for generating responses using either OpenAI or Deepseek based on configuration."""
     
@@ -229,7 +329,25 @@ class LLMService:
             else:
                 print("❌ WARNING: DEEPSEEK_API_KEY is not configured. The system will operate in fallback mode.")
                 print("To use Deepseek, please set your DEEPSEEK_API_KEY environment variable.")
-        
+        elif LLM_PROVIDER == 'azure_openai':
+            self.llm = AzureOpenAILLM(
+                api_key=AZURE_OPENAI_API_KEY,
+                endpoint=AZURE_OPENAI_ENDPOINT,
+                api_version=AZURE_OPENAI_API_VERSION,
+                deployment_name=AZURE_OPENAI_CHAT_DEPLOYMENT
+            )
+
+            # Log configuration status
+            if AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT:
+                print(f"✅ Azure OpenAI configured with deployment: {AZURE_OPENAI_CHAT_DEPLOYMENT}")
+                print(f"   Endpoint: {AZURE_OPENAI_ENDPOINT}")
+                print(f"   API Version: {AZURE_OPENAI_API_VERSION}")
+            else:
+                print("❌ WARNING: Azure OpenAI is not properly configured. The system will operate in fallback mode.")
+                print("To use Azure OpenAI, please set the following environment variables:")
+                print("   - AZURE_OPENAI_API_KEY")
+                print("   - AZURE_OPENAI_ENDPOINT")
+                print("   - AZURE_OPENAI_CHAT_DEPLOYMENT (optional, defaults to 'gpt-35-turbo')")
         else:  # Default to OpenAI
             self.llm = OpenAILLM(
                 api_key=OPENAI_API_KEY,
