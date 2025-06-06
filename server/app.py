@@ -50,7 +50,7 @@ tools = {
     'no_context': no_context_tool,
     'generate': generate_tool,
     'translate': translate_tool,
-    'summarize': summarize_tool  ,
+    'summarize': summarize_tool,
     'clarify': clarify_tool
 }                            # Replace with actual tools if needed
 
@@ -227,252 +227,6 @@ def chat():
     response = pravus_agent.act(user_message, context)
     response['awaiting_clarification'] = context.get('awaiting_clarification',True)
     return jsonify(response)
-
-# @app.route('/api/chat', methods=['POST'])
-# def chat():
-#     """
-#     Process a chat message and return a response based on uploaded manuals.
-#     When no specific manuals are selected, uses all available knowledge.
-#     """
-#     try:
-#         data = request.json
-        
-#         if not data or 'message' not in data:
-#             return jsonify({'error': 'No message provided'}), 400
-        
-#         user_message = data['message']
-#         brand = data.get('brand')
-#         model = data.get('model')
-#         response_language = data.get('responseLanguage', 'en')  # Get desired response language
-        
-#         # For general greetings and basic questions, provide helpful responses
-#         lower_msg = user_message.lower()
-#         response_text = None
-
-#         if any(greeting in lower_msg for greeting in ['hello', 'hi ', 'hey', 'greetings']):
-#             # Basic greetings in different languages
-#             greetings = {
-#                 'en': "👋 Hi! I'm your Pravus.AI Assistant, ready to help you understand and get the most out of your electronic devices. How can I assist you today?",
-#                 'es': "👋 ¡Hola! Soy tu Asistente Pravus.AI, listo para ayudarte a entender y aprovechar al máximo tus dispositivos electrónicos. ¿Cómo puedo ayudarte hoy?",
-#                 'hi': "👋 नमस्ते! मैं आपका Pravus.AI सहायक हूं, आपके इलेक्ट्रॉनिक उपकरणों को समझने और उनका सर्वोत्तम उपयोग करने में मदद करने के लिए तैयार हूं। मैं आज आपकी कैसे सहायता कर सकता हूं?",
-#                 'pl': "👋 Cześć! Jestem twoim Asystentem Pravus.AI, gotowym pomóc ci zrozumieć i wykorzystać maksymalnie twoje urządzenia elektroniczne. Jak mogę ci dziś pomóc?"
-#             }
-#             response_text = greetings.get(response_language, greetings['en'])
-
-#         elif any(help_query in lower_msg for help_query in ['what can you do', 'what can you help with', 'how can you help']):
-#             # Help responses in different languages
-#             help_responses = {
-#                 'en': (
-#                     "I'm your dedicated product expert, here to help you with:\n\n"
-#                     "### 🔍 Product Features\n"
-#                     "• Understanding device features and specifications\n"
-#                     "• Getting the best performance from your device\n"
-#                     "• Discovering advanced capabilities\n\n"
-#                     "### 🛠️ Support & Guidance\n"
-#                     "• Setup and installation instructions\n"
-#                     "• Troubleshooting common issues\n"
-#                     "• Step-by-step configuration\n\n"
-#                     "### 💡 Maintenance\n"
-#                     "• Care guidelines and best practices\n"
-#                     "• Optimization tips\n"
-#                     "• Safety recommendations\n\n"
-#                     "*What specific aspect would you like to learn more about?*"
-#                 ),
-#                 'es': (
-#                     "Soy tu experto en productos dedicado, aquí para ayudarte con:\n\n"
-#                     "### 🔍 Características del Producto\n"
-#                     "• Comprensión de características y especificaciones\n"
-#                     "• Obtener el mejor rendimiento de tu dispositivo\n"
-#                     "• Descubrir capacidades avanzadas\n\n"
-#                     "### 🛠️ Soporte y Guía\n"
-#                     "• Instrucciones de configuración e instalación\n"
-#                     "• Solución de problemas comunes\n"
-#                     "• Configuración paso a paso\n\n"
-#                     "### 💡 Mantenimiento\n"
-#                     "• Pautas de cuidado y mejores prácticas\n"
-#                     "• Consejos de optimización\n"
-#                     "• Recomendaciones de seguridad\n\n"
-#                     "*¿Sobre qué aspecto específico te gustaría saber más?*"
-#                 ),
-#                 'hi': (
-#                     "मैं आपका समर्पित उत्पाद विशेषज्ञ हूं, इनमें आपकी मदद के लिए:\n\n"
-#                     "### 🔍 उत्पाद विशेषताएं\n"
-#                     "• उपकरण विशेषताओं और विनिर्देशों को समझना\n"
-#                     "• अपने उपकरण से सर्वोत्तम प्रदर्शन प्राप्त करना\n"
-#                     "• उन्नत क्षमताओं की खोज\n\n"
-#                     "### 🛠️ सहायता और मार्गदर्शन\n"
-#                     "• सेटअप और इंस्टॉलेशन निर्देश\n"
-#                     "• सामान्य समस्याओं का समाधान\n"
-#                     "• चरण-दर-चरण कॉन्फ़िगरेशन\n\n"
-#                     "### 💡 रखरखाव\n"
-#                     "• देखभाल दिशानिर्देश और सर्वोत्तम प्रथाएं\n"
-#                     "• अनुकूलन के टिप्स\n"
-#                     "• सुरक्षा सिफारिशें\n\n"
-#                     "*किस विशिष्ट पहलू के बारे में आप अधिक जानना चाहेंगे?*"
-#                 )
-#             }
-#             response_text = help_responses.get(response_language, help_responses['en'])
-        
-#         if response_text:
-#             return jsonify({
-#                 'response': response_text,
-#                 'sources': [],
-#                 'timestamp': time.time()
-#             })
-
-#         # Check if we have any documents in the vector store
-#         active_manuals = [m for m in doc_processor.metadata.values() if not m.get('is_deleted', False)]
-        
-#         if not active_manuals:
-#             return jsonify({
-#                 'response': (
-#                     "I don't have any manuals in my database yet. "
-#                     "Our system is being updated with new device manuals. "
-#                     "Please check back soon or contact support for assistance."
-#                 ),
-#                 'sources': [],
-#                 'timestamp': time.time()
-#             })
-        
-#         # If brand/model are specified, verify they exist
-#         if brand or model:
-#             matching_manuals = [
-#                 m for m in active_manuals 
-#                 if (not brand or m.get('brand') == brand) and 
-#                    (not model or m.get('model') == model)
-#             ]
-            
-#             if not matching_manuals:
-#                 available_manuals = "\n".join([
-#                     f"- {m.get('brand', 'Unknown')} {m.get('model', 'Unknown')}"
-#                     for m in active_manuals
-#                 ])
-#                 return jsonify({
-#                     'response': (
-#                         f"I don't have a manual for {brand or ''} {model or ''}. "
-#                         f"Here are the manuals I currently have:\n\n{available_manuals}\n\n"
-#                         "Please select one of these manuals or upload a new one."
-#                     ),
-#                     'sources': [],
-#                     'timestamp': time.time()
-#                 })
-        
-#         # Search for relevant context
-#         print(f"\n🔍 CHAT SEARCH: '{user_message}'")
-#         print(f"🎯 Filters: Brand={brand}, Model={model}")
-        
-#         context_docs = doc_processor.similarity_search(
-#             query=user_message,
-#             brand=brand,
-#             model=model,
-#             k=4,
-#             include_deleted=False  # Never include deleted documents
-#         )
-        
-#         print(f"📋 Search returned {len(context_docs)} context documents")
-        
-#         # If no relevant context found
-#         if not context_docs:
-#             print("⚠️ No context documents found - providing fallback response")
-            
-#             if brand or model:
-#                 return jsonify({
-#                     'response': (
-#                         f"I couldn't find relevant information about that in the "
-#                         f"{brand or ''} {model or ''} manual. Could you rephrase your question or try a different search term?"
-#                     ),
-#                     'sources': [],
-#                     'timestamp': time.time()
-#                 })
-#             else:
-#                 manuals_list = "\n".join([
-#                     f"- {m.get('brand', 'Unknown')} {m.get('model', 'Unknown')}"
-#                     for m in active_manuals
-#                 ])
-#                 return jsonify({
-#                     'response': (
-#                         "I couldn't find relevant information about that. "
-#                         f"I have these manuals available:\n\n{manuals_list}\n\n"
-#                         "Please specify which manual you'd like to learn about or try rephrasing your question."
-#                     ),
-#                     'sources': [],
-#                     'timestamp': time.time()
-#                 })
-        
-#         print(f"✅ Found context from {len(set(doc.metadata.get('file_id') for doc in context_docs))} manual(s)")
-        
-#         # Organize context by manual
-#         manual_contexts = {}
-#         for doc in context_docs:
-#             manual_key = f"{doc.metadata.get('brand', 'Unknown')} {doc.metadata.get('model', 'Unknown')}"
-#             if manual_key not in manual_contexts:
-#                 manual_contexts[manual_key] = {
-#                     'brand': doc.metadata.get('brand', 'Unknown'),
-#                     'model': doc.metadata.get('model', 'Unknown'),
-#                     'docs': []
-#                 }
-#             manual_contexts[manual_key]['docs'].append(doc)
-        
-#         # Format context with clear manual separation and metadata
-#         context_text = ""
-#         for manual_key, manual_data in manual_contexts.items():
-#             context_text += f"\n## Manual Information:\n"
-#             context_text += f"Brand: {manual_data['brand']}\n"
-#             context_text += f"Model: {manual_data['model']}\n\n"
-#             context_text += f"Content from {manual_key} manual:\n"
-            
-#             # Sort documents by page number for better context flow
-#             sorted_docs = sorted(manual_data['docs'], key=lambda x: x.metadata.get('page', 0))
-#             for doc in sorted_docs:
-#                 context_text += f"\nPage {doc.metadata.get('page', 'N/A')}:\n{doc.page_content}\n"
-            
-#             context_text += "\n---\n"  # Add separator between manuals
-        
-#         print(f"📝 Generated context text length: {len(context_text)} characters")
-        
-#         # Generate a response using the LLM
-#         response_data = llm_service.generate_response(
-#             question=user_message,
-#             context_docs=context_docs,
-#             brand=brand,
-#             model=model,
-#             response_language=response_language,
-#             use_fallback=False  # Never use fallback if we have documents
-#         )
-        
-#         # Translate the response if needed
-#         if response_language != 'en':
-#             try:
-#                 response_data['response'] = translator.translate(
-#                     response_data['response'],
-#                     dest=response_language
-#                 ).text
-#             except Exception as e:
-#                 print(f"Translation error: {str(e)}")
-#                 # Continue with English if translation fails
-        
-#         # Add timestamp to the response
-#         response_data['timestamp'] = time.time()
-        
-#         return jsonify(response_data)
-        
-#     except Exception as e:
-#         print(f"Error in chat endpoint: {str(e)}")
-#         error_message = "Sorry, I encountered an error while processing your request."
-        
-#         # Translate error message if needed
-#         if response_language != 'en':
-#             try:
-#                 error_message = translator.translate(error_message, dest=response_language).text
-#             except Exception as e:
-#                 print(f"Translation error: {str(e)}")
-#                 # Continue with English if translation fails
-        
-#         return jsonify({
-#             'response': error_message,
-#             'sources': [],
-#             'timestamp': time.time()
-#         }), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -898,18 +652,38 @@ def summarize_conversation():
         
         # Create summarization prompt
         if context == 'support_ticket':
-            prompt = f"""Please create a concise, professional summary of this customer support conversation for a support ticket. Focus on:
-1. The customer's main issue or question
-2. What they were trying to accomplish
-3. Any specific problems or errors mentioned
-4. Key details that would help a support agent understand the situation
+            prompt = f"""Please create a professional, well-structured summary of this customer support conversation for a support ticket. Format the response exactly as shown below:
+
+**Support Ticket Summary**
+
+**Customer's Main Issue/Question:**
+[Provide a clear, concise statement of the primary issue or question, including any specific product/model mentioned]
+
+**Goal:**
+[One-line description of what the customer was trying to accomplish]
+
+**Key Details:**
+1. [Important detail with page reference if available]
+2. [Important detail with page reference if available]
+3. [Important detail with page reference if available]
+4. [Important detail with page reference if available]
+
+**Additional Context:**
+- [Any relevant background information]
+- [Any important clarifications made]
+- [Any safety or critical notes]
+
+**Actionable Next Steps:**
+[Clear recommendation for what should happen next]
+
+Use the above format strictly, maintaining the bold headers and bullet points. Include page references whenever available from the manual. Be specific about product names and model numbers when mentioned.
 
 Conversation:
 {conversation_text}
 
 Summary:"""
         else:
-            prompt = f"""Please create a concise summary of this conversation:
+            prompt = f"""Please create a concise, well-structured summary of this conversation:
 
 {conversation_text}
 
