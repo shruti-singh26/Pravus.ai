@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import langdetect
 import time
+import unicodedata
 
 import numpy as np
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -344,6 +345,40 @@ class DocumentProcessor:
         except:
             return 'en'  # Default to English if detection fails
     
+    def _fix_shifted_text(self, text: str) -> str:
+        """Fix text that has been shifted by 1 in the ASCII table."""
+        result = ""
+        for char in text:
+            # Skip non-ASCII characters and spaces
+            if ord(char) < 32 or ord(char) > 126:
+                result += char
+                continue
+            
+            # Shift ASCII characters back by 1
+            if char.isalpha():
+                ascii_val = ord(char)
+                if char.isupper():
+                    # Handle uppercase wraparound (A->Z)
+                    if ascii_val == ord('A'):
+                        ascii_val = ord('Z')
+                    else:
+                        ascii_val -= 1
+                else:
+                    # Handle lowercase wraparound (a->z)
+                    if ascii_val == ord('a'):
+                        ascii_val = ord('z')
+                    else:
+                        ascii_val -= 1
+                result += chr(ascii_val)
+            else:
+                # For non-alphabetic characters, just shift back by 1 if in ASCII range
+                ascii_val = ord(char)
+                if 33 <= ascii_val <= 126:  # Printable ASCII range
+                    result += chr(ascii_val - 1)
+                else:
+                    result += char
+        return result
+
     def process_pdf(self, file_path: str, metadata: Dict) -> str:
         """Process a PDF file and add it to the vector store."""
         try:
@@ -384,6 +419,49 @@ class DocumentProcessor:
                 
                 # Extract and clean the text
                 page_text = page.page_content
+                
+                # Fix encoding issues
+                try:
+                    # First try to fix shifted text
+                    if any(c.isalpha() for c in page_text):  # Only try if there are letters
+                        sample = page_text[:100]  # Take a sample to check if it needs fixing
+                        fixed_sample = self._fix_shifted_text(sample)
+                        # If the fixed sample looks more like English, apply the fix
+                        if self._looks_like_english(fixed_sample) > self._looks_like_english(sample):
+                            print(f"   Applying character shift correction for page {i+1}")
+                            page_text = self._fix_shifted_text(page_text)
+                    
+                    # Normalize Unicode characters
+                    page_text = unicodedata.normalize('NFKC', page_text)
+                    
+                    # Remove non-printable characters
+                    page_text = ''.join(char for char in page_text if unicodedata.category(char)[0] != 'C')
+                    
+                    # Handle common encoding issues
+                    page_text = page_text.encode('utf-8', errors='ignore').decode('utf-8')
+                    
+                    # Replace common problematic characters
+                    replacements = {
+                        '\x00': '',  # null byte
+                        '\ufffd': '',  # Unicode replacement character
+                        '': '',  # Unicode replacement character
+                        '\u0013': '',  # DC3 control character
+                        '\u0001': ' ',  # Start of Heading control character - replace with space
+                        '\u000e': '',  # Shift Out
+                        '\u000f': '',  # Shift In
+                        '\u0014': '',  # DC4
+                        '\u0015': '',  # NAK
+                        '\u0006': '',  # ACK
+                        '\r': '\n',    # Convert carriage returns to newlines
+                    }
+                    for old, new in replacements.items():
+                        page_text = page_text.replace(old, new)
+                    
+                    # Clean up multiple spaces
+                    page_text = ' '.join(page_text.split())
+                    
+                except Exception as e:
+                    print(f"Warning: Error during text encoding cleanup: {str(e)}")
                 
                 # Preserve important formatting
                 page_text = page_text.replace('\n\n', '[PARA]')  # Mark paragraphs
@@ -897,4 +975,31 @@ class DocumentProcessor:
                 ]
             }
         
-        return debug_info 
+        return debug_info
+    
+    def _looks_like_english(self, text: str) -> float:
+        """
+        Returns a score indicating how likely the text is to be proper English.
+        Higher score means more likely to be English.
+        """
+        # Common English words that should appear in proper text
+        common_words = {'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at'}
+        
+        # Convert to lowercase and split into words
+        words = text.lower().split()
+        
+        if not words:
+            return 0.0
+        
+        # Count common English words
+        common_word_count = sum(1 for word in words if word in common_words)
+        
+        # Count words that look like proper words (at least 2 chars, mostly letters)
+        proper_word_count = sum(1 for word in words if len(word) >= 2 and sum(c.isalpha() for c in word) / len(word) > 0.7)
+        
+        # Calculate scores
+        common_word_score = common_word_count / len(words)
+        proper_word_score = proper_word_count / len(words)
+        
+        # Combine scores (weighted average)
+        return (common_word_score * 0.6) + (proper_word_score * 0.4) 
