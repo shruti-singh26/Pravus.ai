@@ -1,18 +1,19 @@
 from typing import List, Dict, Any, Optional, Tuple
 import time
 import re
-
+from WarrantyAgent import WarrantyAgent
 
 class ConversationMemory:
     """Memory system for tracking conversation history"""
     
-    def __init__(self, max_history: int = 100):
+    def __init__(self, retriever, max_history: int = 100):
         self.max_history = max_history
         self.conversations = []  # List of conversation turns
         self.topics = {}  # Track topics discussed
         self.devices = {}  # Track devices mentioned
         self.issues = {}  # Track issues discussed
-        
+        self.warranty_agent = WarrantyAgent(retriever)
+
     def add_turn(self, user_input: str, response: str, metadata: Dict = None):
         """Add a conversation turn to memory"""
         turn = {
@@ -170,7 +171,7 @@ class PravusAgent:
         self.retriever = retriever
         self.llm = llm
         self.tools = tools
-        self.memory = ConversationMemory(max_history=100)  # Enhanced memory system
+        self.memory = ConversationMemory(retriever, max_history=100)  # Enhanced memory system
 
     def detect_device_type(self, user_input: str) -> Dict:
         """Detect device type and extract relevant information"""
@@ -717,6 +718,38 @@ class PravusAgent:
         enhanced_context = self.enhance_context_with_memory(user_input, context, monitor_state)
         print(f"🧠 ACT: Enhanced context keys: {list(enhanced_context.keys())}")
         
+        # --- INSERT WARRANTY PROMPT LOGIC HERE ---
+        device_type = monitor_state.get('device_type')
+        already_asked_warranty = context.get('asked_warranty', False)
+        has_bill_number = 'bill_number' in enhanced_context
+        has_purchase_date = 'purchase_date' in enhanced_context
+
+        if device_type and not already_asked_warranty and not (has_bill_number and has_purchase_date):
+            context['asked_warranty'] = True
+            response = (
+                "Before we proceed, could you please provide your bill number and purchase date? "
+                "This will help me check if your product is under warranty and give you the best support."
+                )
+            self.memory.add_turn(user_input, response, {'prompted_for': 'warranty'})
+            return {
+            'response': response,
+            'sources': [],
+            'timestamp': time.time(),
+            'awaiting_clarification': True,
+            'monitor': monitor_state,
+            'critique': "Prompted for warranty info",
+            'confidence': 1.0,
+            'device_type': device_type,
+            'query_category': monitor_state.get('query_category'),
+            'conversation': [],
+            'memory_summary': self.memory.get_context_summary(),
+            'is_followup': enhanced_context.get('is_followup', False),
+            'conversation_length': len(self.memory.conversations)
+            }
+        # --- END WARRANTY PROMPT LOGIC ---
+        
+        
+
         print(f"🎯 ACT: Running critic...")
         critique = self.critic(monitor_state, enhanced_context)
         print(f"🎯 ACT: Critique result: {critique}")
