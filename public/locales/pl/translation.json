@@ -1,0 +1,42 @@
+{
+  "welcome": "Cześć! Jestem Pravus, twój asystent od instrukcji elektronicznych. Proszę wgraj instrukcję używając przycisku \"Wgraj Instrukcję\", aby rozpocząć. Mogę odpowiadać na pytania dotyczące twoich urządzeń elektronicznych na podstawie dostarczonych instrukcji.",
+  "uploadManual": "Wgraj Instrukcję",
+  "currentManuals": "Aktualne Instrukcje",
+  "noManuals": "Brak wgranych instrukcji",
+  "sessionId": "ID Sesji",
+  "darkMode": "Tryb Ciemny",
+  "lightMode": "Tryb Jasny",
+  "resetChat": "Resetuj Czat",
+  "pravusThinking": "Pravus myśli...",
+  "askQuestion": "Zadaj pytanie o instrukcje elektroniczne...",
+  "disclaimer": "Pravus AI może generować niedokładne informacje o instrukcjach elektronicznych.",
+  "didThisHelp": "Czy to pomogło?",
+  "yes": "Tak",
+  "no": "Nie",
+  "rateFeedback": {
+    "title": "Oceń Odpowiedź",
+    "question": "Jak pomocna była ta odpowiedź?",
+    "cancel": "Anuluj",
+    "submit": "Wyślij"
+  },
+  "createTicket": {
+    "title": "Utwórz Zgłoszenie",
+    "description": "Opisz czego szukałeś i dlaczego odpowiedź nie była pomocna.",
+    "placeholder": "Opisz swój problem...",
+    "cancel": "Anuluj",
+    "submit": "Wyślij Zgłoszenie"
+  },
+  "notifications": {
+    "uploadSuccess": "Plik został pomyślnie wgrany",
+    "uploadError": "Nie udało się wgrać pliku",
+    "deleteSuccess": "Plik został pomyślnie usunięty",
+    "deleteError": "Nie udało się usunąć pliku",
+    "resetSuccess": "Sesja czatu została zresetowana",
+    "resetError": "Nie udało się zresetować sesji",
+    "feedbackSuccess": "Dziękujemy za opinię!",
+    "ticketSuccess": "Zgłoszenie zostało utworzone. Nasz zespół się tym zajmie.",
+    "chatError": "Przepraszam, mam problem z połączeniem z serwerem. Spróbuj ponownie później.",
+    "languageError": "Nie udało się zmienić języka. Spróbuj ponownie.",
+    "syncError": "Nie udało się zsynchronizować plików z serwerem"
+  }
+} 

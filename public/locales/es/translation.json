@@ -1,0 +1,42 @@
+{
+  "welcome": "¡Hola! Soy Pravus, tu asistente de manuales electrónicos. Por favor, sube un manual usando el botón \"Subir Manual\" para comenzar. Puedo responder preguntas sobre tus dispositivos electrónicos basándome en los manuales que proporciones.",
+  "uploadManual": "Subir Manual",
+  "currentManuals": "Manuales Actuales",
+  "noManuals": "No hay manuales subidos",
+  "sessionId": "ID de Sesión",
+  "darkMode": "Modo Oscuro",
+  "lightMode": "Modo Claro",
+  "resetChat": "Reiniciar Chat",
+  "pravusThinking": "Pravus está pensando...",
+  "askQuestion": "Haz una pregunta sobre los manuales electrónicos...",
+  "disclaimer": "Pravus AI puede producir información inexacta sobre los manuales electrónicos.",
+  "didThisHelp": "¿Esto te ayudó?",
+  "yes": "Sí",
+  "no": "No",
+  "rateFeedback": {
+    "title": "Califica la Respuesta",
+    "question": "¿Qué tan útil fue esta respuesta?",
+    "cancel": "Cancelar",
+    "submit": "Enviar"
+  },
+  "createTicket": {
+    "title": "Crear Ticket de Soporte",
+    "description": "Por favor, describe lo que estabas buscando y por qué la respuesta no fue útil.",
+    "placeholder": "Describe tu problema...",
+    "cancel": "Cancelar",
+    "submit": "Enviar Ticket"
+  },
+  "notifications": {
+    "uploadSuccess": "Archivo subido exitosamente",
+    "uploadError": "Error al subir el archivo",
+    "deleteSuccess": "Archivo eliminado exitosamente",
+    "deleteError": "Error al eliminar el archivo",
+    "resetSuccess": "Sesión de chat reiniciada",
+    "resetError": "Error al reiniciar la sesión",
+    "feedbackSuccess": "¡Gracias por tu retroalimentación!",
+    "ticketSuccess": "Ticket creado exitosamente. Nuestro equipo lo revisará.",
+    "chatError": "Lo siento, tengo problemas para conectarme al servidor. Por favor, inténtalo más tarde.",
+    "languageError": "Error al cambiar el idioma. Por favor, inténtalo de nuevo.",
+    "syncError": "Error al sincronizar archivos con el servidor"
+  }
+} 

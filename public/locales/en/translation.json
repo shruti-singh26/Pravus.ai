@@ -1,0 +1,42 @@
+{
+  "welcome": "Hello! I am Pravus, your electronic manuals assistant. Please upload a manual using the \"Upload Manual\" button to get started. I can answer questions about your electronic devices based on the manuals you provide.",
+  "uploadManual": "Upload Manual",
+  "currentManuals": "Current Manuals",
+  "noManuals": "No manuals uploaded",
+  "sessionId": "Session ID",
+  "darkMode": "Dark Mode",
+  "lightMode": "Light Mode",
+  "resetChat": "Reset Chat",
+  "pravusThinking": "Pravus is thinking...",
+  "askQuestion": "Ask a question about electronic manuals...",
+  "disclaimer": "Pravus AI may produce inaccurate information about electronic manuals.",
+  "didThisHelp": "Did this help?",
+  "yes": "Yes",
+  "no": "No",
+  "rateFeedback": {
+    "title": "Rate the Response",
+    "question": "How helpful was this response?",
+    "cancel": "Cancel",
+    "submit": "Submit"
+  },
+  "createTicket": {
+    "title": "Create Support Ticket",
+    "description": "Please describe what you were looking for and why the response wasn't helpful.",
+    "placeholder": "Describe your issue...",
+    "cancel": "Cancel",
+    "submit": "Submit Ticket"
+  },
+  "notifications": {
+    "uploadSuccess": "File uploaded successfully",
+    "uploadError": "Failed to upload file",
+    "deleteSuccess": "File deleted successfully",
+    "deleteError": "Failed to delete file",
+    "resetSuccess": "Chat session has been reset",
+    "resetError": "Failed to reset session",
+    "feedbackSuccess": "Thank you for your feedback!",
+    "ticketSuccess": "Ticket created successfully. Our team will look into it.",
+    "chatError": "Sorry, I'm having trouble connecting to the server. Please try again later.",
+    "languageError": "Failed to change language. Please try again.",
+    "syncError": "Failed to sync files with server"
+  }
+} 

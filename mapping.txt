@@ -1,0 +1,36 @@
+{
+'DC68-03144B-01': {
+    modelNumber: 'DC68-03144B-01',
+    pdfPath: '/manuals/washing-machines/Samsung DC68-03144B-01 Owner`s manual.pdf',
+    languages: ['en']
+  },
+  'SW80SP SW70SP': {
+    modelNumber: 'SW80SP SW70SP',
+    pdfPath: '/manuals/washing-machines/Samsung SW80SP  SW70SP User Manual.pdf',
+    languages: ['en']
+  },
+  'WA91V3': {
+    modelNumber: 'WA91V3',
+    pdfPath: '/manuals/washing-machines/Samsung WA91V3 User Manual.pdf',
+    languages: ['en']
+  },
+  'DC68-02657F': {
+    modelNumber: 'DC68-02657F',
+    pdfPath: '/manuals/washing-machines/Samsung Washer DC68-02657F User Guide.pdf',
+    languages: ['en']
+  },
+  'WD1102XVM': {
+    modelNumber: 'WD1102XVM',
+    pdfPath: '/manuals/washing-machines/Samsung WasherDryer WD1102XVM User Manual.pdf',
+    languages: ['en']
+  },
+  'WA50F9A8DSW': {
+    modelNumber: 'WA50F9A8DSW',
+    pdfPath: '/manuals/washing-machines/Samsung Washing Machine WA50F9A8DSW.pdf',
+    languages: ['en']
+  },
+  'WF0804X8E': {
+    modelNumber: 'WF0804X8E',
+    pdfPath: '/manuals/washing-machines/Samsung WF0804X8E 8kg 1400rpm Ecobubble VRT Washing Machine User manual.pdf',
+    languages: ['en']
+  }
