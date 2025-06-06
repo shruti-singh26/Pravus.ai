@@ -16,16 +16,11 @@ import openai
 from config import (
     UPLOAD_FOLDER,
     VECTOR_DB_PATH,
-    LLM_PROVIDER,
     DEFAULT_CHUNK_SIZE,
     DEFAULT_CHUNK_OVERLAP,
     OPENAI_API_KEY,
     OPENAI_EMBEDDING_MODEL,
-    OPENAI_EMBEDDING_DIMENSIONS,
-    AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_API_VERSION,
-    AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+    OPENAI_EMBEDDING_DIMENSIONS
 )
 
 class OpenAIEmbeddings:
@@ -147,130 +142,6 @@ class OpenAIEmbeddings:
             print(f"Error embedding query: {str(e)}")
             return np.zeros(self.dimensions, dtype=np.float32)
 
-class AzureOpenAIEmbeddings:
-    """Azure OpenAI embeddings class with cost optimization and error handling."""
-
-    def __init__(self):
-        if not AZURE_OPENAI_API_KEY or not AZURE_OPENAI_ENDPOINT:
-            raise ValueError("AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT are required. Please set your Azure OpenAI configuration in the environment variables.")
-
-        # Configure Azure OpenAI
-        openai.api_type = "azure"
-        openai.api_key = AZURE_OPENAI_API_KEY
-        openai.api_base = AZURE_OPENAI_ENDPOINT
-        openai.api_version = AZURE_OPENAI_API_VERSION
-
-        self.deployment_name = AZURE_OPENAI_EMBEDDING_DEPLOYMENT
-        self.dimensions = OPENAI_EMBEDDING_DIMENSIONS  # Azure OpenAI uses same dimensions
-        print(f"Initialized Azure OpenAI embeddings with deployment: {self.deployment_name} ({self.dimensions} dimensions)")
-
-    def _make_embedding_request(self, texts: List[str], retry_count: int = 3):
-        """Make embedding request with retry logic and rate limiting."""
-        for attempt in range(retry_count):
-            try:
-                response = openai.Embedding.create(
-                    input=texts,
-                    engine=self.deployment_name  # Use engine for Azure
-                )
-                return response
-            except openai.error.RateLimitError as e:
-                if attempt < retry_count - 1:
-                    wait_time = (2 ** attempt) + 1  # Exponential backoff with minimum 1 second
-                    print(f"      ⏳ Rate limit hit, waiting {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
-                    time.sleep(wait_time)
-                else:
-                    print(f"      ❌ Rate limit exceeded after {retry_count} attempts")
-                    raise e
-            except openai.error.Timeout as e:
-                if attempt < retry_count - 1:
-                    wait_time = 3 + attempt  # Longer wait for timeouts
-                    print(f"      ⏳ Request timeout, waiting {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
-                    time.sleep(wait_time)
-                else:
-                    print(f"      ❌ Request timeout after {retry_count} attempts")
-                    raise e
-            except Exception as e:
-                if attempt < retry_count - 1:
-                    wait_time = 1 + attempt
-                    print(f"      ⏳ Azure OpenAI API error: {str(e)}, retrying in {wait_time} seconds... (attempt {attempt + 1}/{retry_count})")
-                    time.sleep(wait_time)
-                else:
-                    print(f"      ❌ Azure OpenAI API error after {retry_count} attempts: {str(e)}")
-                    raise e
-
-    def embed_documents(self, texts: List[str]) -> np.ndarray:
-        """Convert documents to Azure OpenAI embeddings with adaptive batch processing."""
-        if not texts:
-            return np.zeros((1, self.dimensions), dtype=np.float32)
-
-        print(f"🧠 Generating embeddings for {len(texts)} text chunks using Azure OpenAI...")
-
-        # Adaptive batch sizing - start large, reduce if errors occur
-        initial_batch_size = 75  # Start with 75 (between 50 and 100)
-        min_batch_size = 25      # Minimum batch size if errors persist
-        current_batch_size = initial_batch_size
-        consecutive_errors = 0
-
-        all_embeddings = []
-        i = 0
-
-        while i < len(texts):
-            batch = texts[i:i + current_batch_size]
-            batch_num = len(all_embeddings) // initial_batch_size + 1
-            total_estimated_batches = (len(texts) + initial_batch_size - 1) // initial_batch_size
-
-            print(f"   Processing batch {batch_num} with size {current_batch_size} ({len(batch)} chunks)")
-
-            try:
-                response = self._make_embedding_request(batch)
-                batch_embeddings = [item['embedding'] for item in response['data']]
-                all_embeddings.extend(batch_embeddings)
-                print(f"   ✅ Batch completed successfully")
-
-                # Success - can try increasing batch size next time
-                consecutive_errors = 0
-                if current_batch_size < initial_batch_size:
-                    current_batch_size = min(current_batch_size + 10, initial_batch_size)
-                    print(f"   📈 Increasing batch size to {current_batch_size}")
-
-                # Move to next batch
-                i += len(batch)
-
-                # Small delay between batches to be respectful to API
-                if i < len(texts):
-                    time.sleep(0.05)  # Reduced delay for speed
-
-            except Exception as e:
-                print(f"   ❌ Error processing batch: {str(e)}")
-                consecutive_errors += 1
-
-                # Reduce batch size if getting errors
-                if consecutive_errors >= 2 and current_batch_size > min_batch_size:
-                    current_batch_size = max(current_batch_size // 2, min_batch_size)
-                    print(f"   📉 Reducing batch size to {current_batch_size} due to errors")
-
-                # Add zero vectors for failed batch and continue
-                batch_embeddings = [np.zeros(self.dimensions).tolist() for _ in batch]
-                all_embeddings.extend(batch_embeddings)
-                i += len(batch)
-
-        embeddings_array = np.array(all_embeddings, dtype=np.float32)
-        print(f"✅ Generated {len(embeddings_array)} embeddings with shape {embeddings_array.shape}")
-        return embeddings_array
-
-    def embed_query(self, text: str) -> np.ndarray:
-        """Convert query to Azure OpenAI embedding."""
-        if not text:
-            return np.zeros(self.dimensions, dtype=np.float32)
-
-        try:
-            response = self._make_embedding_request([text])
-            embedding = response['data'][0]['embedding']
-            return np.array(embedding, dtype=np.float32)
-        except Exception as e:
-            print(f"Error embedding query: {str(e)}")
-            return np.zeros(self.dimensions, dtype=np.float32)
-
 class DocumentProcessor:
     """Handles PDF processing, chunking, and embedding using OpenAI embeddings."""
     
@@ -286,19 +157,11 @@ class DocumentProcessor:
         
         # Initialize OpenAI embeddings
         try:
-            if LLM_PROVIDER == 'azure_openai':
-                self.embeddings = AzureOpenAIEmbeddings()
-                print("Using Azure OpenAI for embeddings")
-            else:
-                self.embeddings = OpenAIEmbeddings()
-                print("Using regular OpenAI for embeddings")
+            self.embeddings = OpenAIEmbeddings()
             self.embedding_dimensions = OPENAI_EMBEDDING_DIMENSIONS
         except ValueError as e:
             print(f"Error: {str(e)}")
-            if LLM_PROVIDER == 'azure_openai':
-                print("Please set your Azure OpenAI configuration environment variables to use Pravus.AI")
-            else:
-                print("Please set your OPENAI_API_KEY environment variable to use Pravus.AI")
+            print("Please set your OPENAI_API_KEY environment variable to use Pravus.AI")
             raise
         
         # Initialize single multilingual FAISS index (OpenAI handles all languages well)
