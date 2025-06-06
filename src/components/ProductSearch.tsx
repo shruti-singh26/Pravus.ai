@@ -210,22 +210,10 @@ const ProductSearch: React.FC = () => {
       description: t('categories.kitchen_appliances_desc')
     },
     { 
-      id: 'climate',
-      icon: HvacIcon,
-      title: t('categories.climate'),
-      description: t('categories.climate_desc')
-    },
-    { 
       id: 'healthcare',
       icon: HealthcareIcon,
       title: t('categories.healthcare'),
       description: t('categories.healthcare_desc')
-    },
-    { 
-      id: 'lighting',
-      icon: LightingIcon,
-      title: t('categories.lighting'),
-      description: t('categories.lighting_desc')
     },
     { 
       id: 'gaming',
@@ -239,12 +227,6 @@ const ProductSearch: React.FC = () => {
       title: t('categories.cameras'),
       description: t('categories.cameras_desc')
     },
-    { 
-      id: 'electronics',
-      icon: ElectronicsIcon,
-      title: t('categories.electronics'),
-      description: t('categories.electronics_desc')
-    }
   ];
 
   const features = [
