@@ -187,11 +187,12 @@ class ConversationMemory:
 
 
 class PravusAgent:
-    def __init__(self, retriever, llm, tools: Dict[str, Any]):
+    def __init__(self, retriever, llm, tools: Dict[str, Any],knowledge_agent=None):
         self.retriever = retriever
         self.llm = llm
         self.tools = tools
-        self.memory = ConversationMemory(retriever, max_history=100)  # Enhanced memory system
+        self.memory = ConversationMemory(retriever, max_history=100) 
+        self.knowledge_agent=knowledge_agent # Enhanced memory system
 
     def detect_device_type(self, user_input: str) -> Dict:
         """Detect device type and extract relevant information"""
@@ -883,9 +884,32 @@ class PravusAgent:
             print(f"❌ ACT: Error executing tool '{tool}': {str(e)}")
             response = "I encountered an error while processing your request. Please try again."
 
+        # --- KNOWLEDGE ARTICLE AGENT INTEGRATION ---
+        knowledge_answer = None
+        if self.knowledge_agent:
+            knowledge_answer = self.knowledge_agent.search(user_input)
+            if knowledge_answer:
+                print(f"🧠 KnowledgeArticleAgent found an answer.")
+
+        # Combine manual (tool-generated) and knowledge article answers if both exist
+        if response and knowledge_answer:
+            combined_response = (
+                f"**Manual Answer:**\n{response}\n\n"
+                f"**Knowledge Article:**\n{knowledge_answer}"
+            )
+            response = combined_response
+        elif knowledge_answer:
+            response = knowledge_answer
+        # else: response is already set by manual/tool flow
+
         if not response:
             print(f"⚠️ ACT: No response generated, using fallback")
-            response = "Sorry, I couldn't generate a response. Please try rephrasing your question."
+            # response = "Sorry, I couldn't generate a response. Please try rephrasing your question."
+            response = (
+                "I'm your L1 support assistant and I've checked all available manuals and knowledge articles, "
+                "but I couldn't find an answer to your query. "
+                "Please take help of our L2 support panel—they will guide you further and provide specialized assistance."
+            )
 
         # Store conversation in memory with metadata
         conversation_metadata = {
