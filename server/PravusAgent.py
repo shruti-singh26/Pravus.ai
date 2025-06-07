@@ -767,6 +767,28 @@ class PravusAgent:
         # Or, implement a more granular reset if needed
         # --- END NEW PROBLEM CONTEXT RESET LOGIC ---
         
+        # --- WARRANTY END DATE QUERY HANDLING ---
+        if self.memory.warranty_agent.is_end_date_query(user_input):
+         memory_context = self.memory.get_latest_problem_context()
+         response = self.memory.warranty_agent.act(user_input, memory=memory_context)
+         self.memory.add_turn(user_input, response, {'agent': 'warranty', **memory_context})
+         return {
+         'response': response,
+         'sources': [],
+         'timestamp': time.time(),
+         'awaiting_clarification': False,
+         'monitor': monitor_state,
+         'critique': "Answered warranty end date",
+         'confidence': 1.0,
+         'device_type': monitor_state.get('device_type'),
+         'query_category': monitor_state.get('query_category'),
+         'conversation': [],
+         'memory_summary': self.memory.get_context_summary(),
+         'is_followup': enhanced_context.get('is_followup', False),
+         'conversation_length': len(self.memory.conversations)
+            }
+        # --- END WARRANTY END DATE QUERY HANDLING ---
+
         # --- INSERT WARRANTY PROMPT LOGIC HERE ---
         device_type = monitor_state.get('device_type')
         # already_asked_warranty = context.get('asked_warranty', False)
@@ -781,7 +803,15 @@ class PravusAgent:
                 "Before we proceed, could you please provide your bill number and purchase date? "
                 "This will help me check if your product is under warranty and give you the best support."
                 )
-            self.memory.add_turn(user_input, response, {'prompted_for': 'warranty'})
+            self.memory.add_turn(
+            user_input,
+            response,
+              {
+                'prompted_for': 'warranty',
+                'agent': 'warranty',
+                'last_prompt': 'ask_purchase_date'
+              }
+           )
             return {
             'response': response,
             'sources': [],
@@ -859,11 +889,13 @@ class PravusAgent:
 
         # Store conversation in memory with metadata
         conversation_metadata = {
-            'device_type': monitor_state.get('device_type'),
-            'query_category': monitor_state.get('query_category'),
-            'confidence': critique[2] if len(critique) > 2 else 0.0,
-            'device_details': monitor_state.get('device_details'),
-            'is_followup': enhanced_context.get('is_followup', False)
+        'device_type': monitor_state.get('device_type'),
+        'query_category': monitor_state.get('query_category'),
+        'confidence': critique[2] if len(critique) > 2 else 0.0,
+        'device_details': monitor_state.get('device_details'),
+        'is_followup': enhanced_context.get('is_followup', False),
+         'bill_number': enhanced_context.get('bill_number'),
+         'purchase_date': enhanced_context.get('purchase_date')
         }
         
         self.memory.add_turn(user_input, response, conversation_metadata)
