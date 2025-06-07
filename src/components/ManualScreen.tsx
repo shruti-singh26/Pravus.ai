@@ -647,7 +647,7 @@ const ManualScreen: React.FC = () => {
                     }}
                     onClick={() => handleManualSelect(manual)}
                   >
-                    {manual.isDemoData ? 'Try Demo Chat' : 'Chat with AI Assistant'}
+                    {manual.isDemoData ? t('productDetails.demoButton') : t('productDetails.chatButton')}
                   </Button>
                   
                   {/* Download PDF Button */}

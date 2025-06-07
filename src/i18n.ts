@@ -79,6 +79,8 @@ i18n
             uploadInstructions: 'Upload your manual to get intelligent assistance',
             upload: 'Upload',
             uploading: 'Uploading...',
+            chatButton: 'Chat with AI Assistant',
+            demoButton: 'Try Demo Chat'
           },
           chat: {
             pdfViewer: 'Manual Viewer',
@@ -219,11 +221,13 @@ i18n
             availableManuals: 'Manuales Disponibles',
             available: 'Disponible',
             unavailable: 'No Disponible',
-            askIntelligent: 'Preguntar a la IA',
+            askIntelligent: 'Preguntar a la IA Inteligente',
             haveManual: '¿Tienes un manual?',
             uploadInstructions: 'Sube tu manual para obtener asistencia inteligente',
             upload: 'Subir',
             uploading: 'Subiendo...',
+            chatButton: 'Chatear con Asistente IA',
+            demoButton: 'Probar Chat Demo'
           },
           chat: {
             pdfViewer: 'Visor de Manual',
@@ -364,11 +368,13 @@ i18n
             availableManuals: 'उपलब्ध मैनुअल',
             available: 'उपलब्ध',
             unavailable: 'अनुपलब्ध',
-            askIntelligent: 'AI से पूछें',
-            haveManual: 'मैनुअल है?',
-            uploadInstructions: 'इंटेलिजेंट सहायता प्राप्त करने के लिए अपना मैनुअल अपलोड करें',
-            upload: 'अपलोड',
+            askIntelligent: 'बुद्धिमान एआई से पूछें',
+            haveManual: 'क्या आपके पास मैनुअल है?',
+            uploadInstructions: 'बुद्धिमान सहायता प्राप्त करने के लिए अपना मैनुअल अपलोड करें',
+            upload: 'अपलोड करें',
             uploading: 'अपलोड हो रहा है...',
+            chatButton: 'एआई सहायक से चैट करें',
+            demoButton: 'डेमो चैट आज़माएं'
           },
           chat: {
             pdfViewer: 'मैनुअल व्यूअर',
@@ -509,11 +515,13 @@ i18n
             availableManuals: 'Dostępne instrukcje',
             available: 'Dostępne',
             unavailable: 'Niedostępne',
-            askIntelligent: 'Zapytaj AI',
+            askIntelligent: 'Zapytaj Inteligentną AI',
             haveManual: 'Masz instrukcję?',
             uploadInstructions: 'Prześlij swoją instrukcję, aby uzyskać inteligentną pomoc',
             upload: 'Prześlij',
             uploading: 'Przesyłanie...',
+            chatButton: 'Czatuj z Asystentem AI',
+            demoButton: 'Wypróbuj Demo Czatu'
           },
           chat: {
             pdfViewer: 'Przeglądarka instrukcji',
