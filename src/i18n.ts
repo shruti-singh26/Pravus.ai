@@ -119,6 +119,44 @@ i18n
             generalPrompt: "How can I assist you today?"
           },
           search: 'Search',
+          admin: {
+            title: 'Admin Panel',
+            subtitle: 'Manual upload and management system',
+            uploadTab: 'Upload Manual',
+            manageTab: 'Manage Manuals',
+            selectFile: 'Select File',
+            dropzone: {
+              title: 'Drop your file here or click to browse',
+              subtitle: 'Supported formats: PDF, TXT, DOC, DOCX (Max 16MB)',
+              fileSelected: 'File Selected'
+            },
+            table: {
+              fileName: 'File Name',
+              brand: 'Brand',
+              model: 'Model',
+              type: 'Type',
+              language: 'Language',
+              uploadDate: 'Upload Date',
+              actions: 'Actions',
+              unknown: 'Unknown'
+            },
+            noManuals: {
+              title: 'No manuals uploaded yet',
+              subtitle: 'Upload your first manual using the Upload tab'
+            }
+          },
+          manualScreen: {
+            noManuals: {
+              title: 'No manuals available yet',
+              subtitle: 'Our manual database is being updated. Please check back soon.'
+            },
+            details: {
+              year: 'Year',
+              language: 'Language',
+              demo: 'Demo',
+              demoText: 'Sample data for demonstration'
+            }
+          }
         },
       },
       es: {
@@ -226,6 +264,44 @@ i18n
             generalPrompt: "¿Cómo puedo ayudarte hoy?"
           },
           search: 'Buscar',
+          admin: {
+            title: 'Panel de Administración',
+            subtitle: 'Sistema de carga y gestión de manuales',
+            uploadTab: 'Subir Manual',
+            manageTab: 'Gestionar Manuales',
+            selectFile: 'Seleccionar Archivo',
+            dropzone: {
+              title: 'Arrastra tu archivo aquí o haz clic para buscar',
+              subtitle: 'Formatos soportados: PDF, TXT, DOC, DOCX (Máx 16MB)',
+              fileSelected: 'Archivo Seleccionado'
+            },
+            table: {
+              fileName: 'Nombre del Archivo',
+              brand: 'Marca',
+              model: 'Modelo',
+              type: 'Tipo',
+              language: 'Idioma',
+              uploadDate: 'Fecha de Subida',
+              actions: 'Acciones',
+              unknown: 'Desconocido'
+            },
+            noManuals: {
+              title: 'Aún no hay manuales subidos',
+              subtitle: 'Sube tu primer manual usando la pestaña de Subir'
+            }
+          },
+          manualScreen: {
+            noManuals: {
+              title: 'Aún no hay manuales disponibles',
+              subtitle: 'Nuestra base de datos de manuales está siendo actualizada. Por favor, vuelve pronto.'
+            },
+            details: {
+              year: 'Año',
+              language: 'Idioma',
+              demo: 'Demo',
+              demoText: 'Datos de muestra para demostración'
+            }
+          }
         },
       },
       hi: {
@@ -333,6 +409,44 @@ i18n
             generalPrompt: "मैं आज आपकी कैसे मदद कर सकता हूं?"
           },
           search: 'खोज',
+          admin: {
+            title: 'एडमिन पैनल',
+            subtitle: 'मैनुअल अपलोड और प्रबंधन प्रणाली',
+            uploadTab: 'मैनुअल अपलोड करें',
+            manageTab: 'मैनुअल प्रबंधित करें',
+            selectFile: 'फ़ाइल चुनें',
+            dropzone: {
+              title: 'अपनी फ़ाइल यहां खींचें या ब्राउज़ करने के लिए क्लिक करें',
+              subtitle: 'समर्थित प्रारूप: PDF, TXT, DOC, DOCX (अधिकतम 16MB)',
+              fileSelected: 'फ़ाइल चयनित'
+            },
+            table: {
+              fileName: 'फ़ाइल का नाम',
+              brand: 'ब्रांड',
+              model: 'मॉडल',
+              type: 'प्रकार',
+              language: 'भाषा',
+              uploadDate: 'अपलोड की तिथि',
+              actions: 'कार्रवाई',
+              unknown: 'अज्ञात'
+            },
+            noManuals: {
+              title: 'अभी तक कोई मैनुअल अपलोड नहीं किया गया',
+              subtitle: 'अपलोड टैब का उपयोग करके अपना पहला मैनुअल अपलोड करें'
+            }
+          },
+          manualScreen: {
+            noManuals: {
+              title: 'अभी कोई मैनुअल उपलब्ध नहीं है',
+              subtitle: 'हमारा मैनुअल डेटाबेस अपडेट किया जा रहा है। कृपया जल्द ही फिर से जांचें।'
+            },
+            details: {
+              year: 'वर्ष',
+              language: 'भाषा',
+              demo: 'डेमो',
+              demoText: 'प्रदर्शन के लिए नमूना डेटा'
+            }
+          }
         },
       },
       pl: {
@@ -408,38 +522,76 @@ i18n
             send: 'Wyślij',
             helpful: 'To było pomocne',
             notHelpful: 'To nie było pomocne',
-            welcome: "Hi, I'm your Pravus.AI Assistant!",
-            welcomeManual: "I'm here to help you get the most out of your {{brand}} {{model}}. Let me be your guide for:",
-            welcomeGeneral: "I'm your dedicated product expert, ready to help you understand and get the most out of your electronic devices.",
+            welcome: "Cześć, jestem Twoim Asystentem Pravus.AI!",
+            welcomeManual: "Jestem tutaj, aby pomóc Ci jak najlepiej wykorzystać Twój {{brand}} {{model}}. Pozwól, że będę Twoim przewodnikiem w:",
+            welcomeGeneral: "Jestem Twoim dedykowanym ekspertem od produktów, gotowym pomóc Ci zrozumieć i w pełni wykorzystać Twoje urządzenia elektroniczne.",
             features: {
-              title: "Product Features",
-              understand: "Understanding all features and settings",
-              performance: "Getting the best performance",
-              discover: "Discovering hidden capabilities"
+              title: "Funkcje Produktu",
+              understand: "Zrozumienie wszystkich funkcji i ustawień",
+              performance: "Uzyskanie najlepszej wydajności",
+              discover: "Odkrywanie ukrytych możliwości"
             },
             setup: {
-              title: "Setup & Support",
-              installation: "Easy installation guidance",
-              configuration: "Step-by-step configuration",
-              troubleshooting: "Quick troubleshooting"
+              title: "Konfiguracja i Wsparcie",
+              installation: "Łatwe wskazówki instalacji",
+              configuration: "Konfiguracja krok po kroku",
+              troubleshooting: "Szybkie rozwiązywanie problemów"
             },
             maintenance: {
-              title: "Tips & Care",
-              practices: "Maintenance best practices",
-              tips: "Optimization tips",
-              safety: "Safety guidelines"
+              title: "Wskazówki i Pielęgnacja",
+              practices: "Najlepsze praktyki konserwacji",
+              tips: "Wskazówki dotyczące optymalizacji",
+              safety: "Wytyczne bezpieczeństwa"
             },
             capabilities: {
-              title: "I Can Help You With",
-              features: "Complete product features guide",
-              support: "Setup and installation support",
-              troubleshooting: "Troubleshooting assistance",
-              maintenance: "Maintenance and care tips"
+              title: "Mogę Pomóc Ci Z",
+              features: "Kompletny przewodnik po funkcjach produktu",
+              support: "Wsparcie w konfiguracji i instalacji",
+              troubleshooting: "Pomoc w rozwiązywaniu problemów",
+              maintenance: "Wskazówki dotyczące konserwacji i pielęgnacji"
             },
-            assistPrompt: "How can I assist you today with your {{brand}} {{model}}?",
-            generalPrompt: "How can I assist you today?"
+            assistPrompt: "Jak mogę Ci dziś pomóc z Twoim {{brand}} {{model}}?",
+            generalPrompt: "Jak mogę Ci dziś pomóc?"
           },
           search: 'Szukaj',
+          admin: {
+            title: 'Panel Administratora',
+            subtitle: 'System przesyłania i zarządzania instrukcjami',
+            uploadTab: 'Prześlij Instrukcję',
+            manageTab: 'Zarządzaj Instrukcjami',
+            selectFile: 'Wybierz Plik',
+            dropzone: {
+              title: 'Przeciągnij plik tutaj lub kliknij, aby przeglądać',
+              subtitle: 'Obsługiwane formaty: PDF, TXT, DOC, DOCX (Maks. 16MB)',
+              fileSelected: 'Plik Wybrany'
+            },
+            table: {
+              fileName: 'Nazwa Pliku',
+              brand: 'Marka',
+              model: 'Model',
+              type: 'Typ',
+              language: 'Język',
+              uploadDate: 'Data Przesłania',
+              actions: 'Akcje',
+              unknown: 'Nieznany'
+            },
+            noManuals: {
+              title: 'Brak przesłanych instrukcji',
+              subtitle: 'Prześlij swoją pierwszą instrukcję używając zakładki Prześlij'
+            }
+          },
+          manualScreen: {
+            noManuals: {
+              title: 'Brak dostępnych instrukcji',
+              subtitle: 'Nasza baza instrukcji jest aktualizowana. Sprawdź ponownie wkrótce.'
+            },
+            details: {
+              year: 'Rok',
+              language: 'Język',
+              demo: 'Demo',
+              demoText: 'Przykładowe dane do demonstracji'
+            }
+          }
         },
       },
     },

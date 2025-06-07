@@ -43,6 +43,7 @@ import {
   Storage as StorageIcon
 } from '@mui/icons-material';
 import { uploadFile, FileUploadResponse, getFiles, deleteFile, FileData, downloadFile } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 1200,
@@ -115,6 +116,7 @@ function TabPanel(props: TabPanelProps) {
 const AdminPage: React.FC = () => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
   
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -172,16 +174,7 @@ const AdminPage: React.FC = () => {
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'it', name: 'Italian' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'ru', name: 'Russian' },
-    { code: 'ja', name: 'Japanese' },
-    { code: 'ko', name: 'Korean' },
-    { code: 'zh', name: 'Chinese' },
     { code: 'hi', name: 'Hindi' },
-    { code: 'ar', name: 'Arabic' },
     { code: 'pl', name: 'Polish' }
   ];
 
@@ -209,7 +202,7 @@ const AdminPage: React.FC = () => {
         console.warn('Loading manuals timed out, setting empty state');
         setManuals([]);
         setLoading(false);
-        showNotification('Loading timed out. Showing empty state. Please refresh if you expect manuals to be present.', 'info');
+        showNotification(t('admin.loadingTimeout'), 'info');
       }
     }, 15000); // 15 second timeout
     
@@ -227,14 +220,14 @@ const AdminPage: React.FC = () => {
       console.error('Failed to load manuals:', error);
       
       // Provide more specific error messages based on the error type
-      let errorMessage = 'Failed to load manuals';
+      let errorMessage = t('admin.failedToLoadManuals');
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
-          errorMessage = 'Request timed out while loading manuals. Please check your connection and try again.';
+          errorMessage = t('admin.requestTimedOut');
         } else if (error.message.includes('network') || error.message.includes('ECONNREFUSED')) {
-          errorMessage = 'Cannot connect to server. Please check if the server is running.';
+          errorMessage = t('admin.cannotConnect');
         } else {
-          errorMessage = `Failed to load manuals: ${error.message}`;
+          errorMessage = `${t('admin.failedToLoadManuals')}: ${error.message}`;
         }
       }
       
@@ -271,7 +264,7 @@ const AdminPage: React.FC = () => {
     if (!allowedTypes.includes(fileExtension)) {
       setUploadResult({
         type: 'error',
-        message: `Unsupported file type. Allowed types: ${allowedTypes.join(', ')}`
+        message: `${t('admin.unsupportedFileType')} ${allowedTypes.join(', ')}`
       });
       return;
     }
@@ -280,7 +273,7 @@ const AdminPage: React.FC = () => {
     if (file.size > maxSize) {
       setUploadResult({
         type: 'error',
-        message: 'File size exceeds 16MB limit'
+        message: t('admin.fileSizeExceedsLimit')
       });
       return;
     }
@@ -291,12 +284,14 @@ const AdminPage: React.FC = () => {
       const uploadDate = new Date(duplicateManual.timestamp).toLocaleDateString();
       setUploadResult({
         type: 'error',
-        message: `File "${file.name}" already exists!\n\n` +
-                 `Existing file details:\n` +
-                 `• Brand: ${duplicateManual.brand || 'Unknown'}\n` +
-                 `• Model: ${duplicateManual.model || 'Unknown'}\n` +
-                 `• Upload Date: ${uploadDate}\n\n` +
-                 `Please rename your file or delete the existing one first.`
+        message: `${t('admin.fileAlreadyExists')}
+${t('admin.existingFileDetails')}
+• ${t('admin.brand')}: ${duplicateManual.brand || t('admin.unknown')}
+• ${t('admin.model')}: ${duplicateManual.model || t('admin.unknown')}
+• ${t('admin.uploadDate')}: ${uploadDate}
+
+${t('admin.pleaseRenameOrDeleteExisting')}
+`
       });
       return;
     }
@@ -336,7 +331,7 @@ const AdminPage: React.FC = () => {
     if (!selectedFile) {
       setUploadResult({
         type: 'error',
-        message: 'Please select a file to upload'
+        message: t('admin.pleaseSelectFile')
       });
       return;
     }
@@ -345,7 +340,7 @@ const AdminPage: React.FC = () => {
     if (!formData.brand.trim() || !formData.model.trim()) {
       setUploadResult({
         type: 'error',
-        message: 'Brand and Model are required fields'
+        message: t('admin.brandAndModelRequired')
       });
       return;
     }
@@ -373,7 +368,7 @@ const AdminPage: React.FC = () => {
 
       setUploadResult({
         type: 'success',
-        message: `Successfully uploaded ${response.filename}`
+        message: `${t('admin.successfullyUploaded')} ${response.filename}`
       });
 
       // Auto-dismiss success notification after 4 seconds
@@ -403,7 +398,7 @@ const AdminPage: React.FC = () => {
     } catch (error: any) {
       setUploadResult({
         type: 'error',
-        message: error.message || 'Upload failed. Please try again.'
+        message: error.message || t('admin.uploadFailed')
       });
     } finally {
       setIsUploading(false);
@@ -425,7 +420,7 @@ const AdminPage: React.FC = () => {
     
     // Ensure we have a valid file_id
     if (!manualToDelete.file_id) {
-      showNotification('Cannot delete: Invalid file ID', 'error');
+      showNotification(t('admin.cannotDeleteInvalidFileId'), 'error');
       setDeleteDialog({ open: false, manual: null, isDeleting: false });
       return;
     }
@@ -444,13 +439,13 @@ const AdminPage: React.FC = () => {
       setDeleteDialog({ open: false, manual: null, isDeleting: false });
       
       // Show immediate feedback
-      showNotification(`Deleting ${manualToDelete.name}...`, 'info');
+      showNotification(`${t('admin.deleting')} ${manualToDelete.name}...`, 'info');
       
       // Perform actual deletion
       await deleteFile(manualToDelete.file_id);
       
       // Success - show success message
-      showNotification(`Successfully deleted ${manualToDelete.name}`, 'success');
+      showNotification(`${t('admin.successfullyDeleted')} ${manualToDelete.name}`, 'success');
       
     } catch (error) {
       console.error('Failed to delete manual:', error);
@@ -465,7 +460,7 @@ const AdminPage: React.FC = () => {
         return prevManuals;
       });
       
-      showNotification(`Failed to delete ${manualToDelete.name}. Please try again.`, 'error');
+      showNotification(`${t('admin.failedToDelete')} ${manualToDelete.name}. ${t('admin.pleaseTryAgain')}`, 'error');
     } finally {
       // Remove from deleting state
       setDeletingItems(prev => {
@@ -498,12 +493,12 @@ const AdminPage: React.FC = () => {
       document.body.removeChild(link);
       
       // Show success notification
-      showNotification(`Successfully downloaded ${filename}`, 'success');
+      showNotification(`${t('admin.successfullyDownloaded')} ${filename}`, 'success');
       
     } catch (error) {
       console.error('Download error:', error);
       showNotification(
-        error instanceof Error ? error.message : 'Failed to download file. Please try again.',
+        error instanceof Error ? error.message : t('admin.failedToDownloadFile'),
         'error'
       );
     }
@@ -542,18 +537,18 @@ const AdminPage: React.FC = () => {
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <AdminIcon sx={{ fontSize: 48, color: theme.palette.primary.main, mb: 2 }} />
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-              Admin Panel
+              {t('admin.title')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
-              Manual upload and management system
+              {t('admin.subtitle')}
             </Typography>
           </Box>
 
           {/* Tabs */}
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs value={currentTab} onChange={handleTabChange} centered>
-              <Tab icon={<CloudUploadIcon />} label="Upload Manual" />
-              <Tab icon={<StorageIcon />} label="Manage Manuals" />
+              <Tab icon={<CloudUploadIcon />} label={t('admin.uploadTab')} />
+              <Tab icon={<StorageIcon />} label={t('admin.manageTab')} />
             </Tabs>
           </Box>
 
@@ -582,7 +577,7 @@ const AdminPage: React.FC = () => {
             {/* File Upload Area */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Select File
+                {t('admin.selectFile')}
               </Typography>
               
               <UploadArea
@@ -604,7 +599,7 @@ const AdminPage: React.FC = () => {
                       {formatFileSize(selectedFile.size)}
                     </Typography>
                     <Chip 
-                      label="File Selected" 
+                      label={t('admin.dropzone.fileSelected')}
                       color="success" 
                       size="small" 
                       sx={{ mt: 1 }}
@@ -613,10 +608,10 @@ const AdminPage: React.FC = () => {
                 ) : (
                   <Box>
                     <Typography variant="h6" gutterBottom>
-                      Drop your file here or click to browse
+                      {t('admin.dropzone.title')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Supported formats: PDF, TXT, DOC, DOCX (Max 16MB)
+                      {t('admin.dropzone.subtitle')}
                     </Typography>
                   </Box>
                 )}
@@ -634,17 +629,17 @@ const AdminPage: React.FC = () => {
             {/* Metadata Form */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Product Information
+                {t('admin.productInformation')}
               </Typography>
               
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label="Brand *"
+                    label={t('admin.brand')}
                     value={formData.brand}
                     onChange={handleInputChange('brand')}
-                    placeholder="e.g., Samsung, LG, Whirlpool"
+                    placeholder={t('admin.brandPlaceholder')}
                     required
                   />
                 </Box>
@@ -652,10 +647,10 @@ const AdminPage: React.FC = () => {
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label="Model *"
+                    label={t('admin.model')}
                     value={formData.model}
                     onChange={handleInputChange('model')}
-                    placeholder="e.g., WA50F9A8DSW, DC68-02657F"
+                    placeholder={t('admin.modelPlaceholder')}
                     required
                   />
                 </Box>
@@ -664,12 +659,12 @@ const AdminPage: React.FC = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Product Type"
+                    label={t('admin.productType')}
                     value={formData.product_type}
                     onChange={handleInputChange('product_type')}
                   >
                     <MenuItem value="">
-                      <em>Select Product Type</em>
+                      <em>{t('admin.selectProductType')}</em>
                     </MenuItem>
                     {productTypes.map((type) => (
                       <MenuItem key={type} value={type}>
@@ -682,10 +677,10 @@ const AdminPage: React.FC = () => {
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label="Year"
+                    label={t('admin.year')}
                     value={formData.year}
                     onChange={handleInputChange('year')}
-                    placeholder="e.g., 2023"
+                    placeholder={t('admin.yearPlaceholder')}
                     type="number"
                     inputProps={{ min: 1990, max: new Date().getFullYear() + 1 }}
                   />
@@ -695,7 +690,7 @@ const AdminPage: React.FC = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Language"
+                    label={t('admin.language')}
                     value={formData.language}
                     onChange={handleInputChange('language')}
                   >
@@ -714,12 +709,12 @@ const AdminPage: React.FC = () => {
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="body2" sx={{ mr: 2 }}>
-                    Processing your manual...
+                    {t('admin.processingManual')}
                   </Typography>
                   <CircularProgress size={16} />
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                  Large files may take several minutes to process. Please be patient.
+                  {t('admin.largeFilesMayTakeSeveralMinutes')}
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
@@ -745,7 +740,7 @@ const AdminPage: React.FC = () => {
                   borderRadius: 3,
                 }}
               >
-                {isUploading ? 'Processing...' : 'Upload Manual'}
+                {isUploading ? t('admin.processing') : t('admin.uploadManual')}
               </Button>
             </Box>
           </TabPanel>
@@ -754,7 +749,7 @@ const AdminPage: React.FC = () => {
           <TabPanel value={currentTab} index={1}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Uploaded Manuals ({manuals.length})
+                {t('admin.uploadedManuals')} ({manuals.length})
               </Typography>
               <Button
                 variant="outlined"
@@ -762,7 +757,7 @@ const AdminPage: React.FC = () => {
                 onClick={loadManuals}
                 disabled={loading}
               >
-                Refresh
+                {t('admin.refresh')}
               </Button>
             </Box>
 
@@ -773,10 +768,10 @@ const AdminPage: React.FC = () => {
             ) : manuals.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No manuals uploaded yet
+                  {t('admin.noManuals.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Upload your first manual using the Upload tab
+                  {t('admin.noManuals.subtitle')}
                 </Typography>
               </Box>
             ) : (
@@ -784,13 +779,13 @@ const AdminPage: React.FC = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell><strong>File Name</strong></TableCell>
-                      <TableCell><strong>Brand</strong></TableCell>
-                      <TableCell><strong>Model</strong></TableCell>
-                      <TableCell><strong>Type</strong></TableCell>
-                      <TableCell><strong>Language</strong></TableCell>
-                      <TableCell><strong>Upload Date</strong></TableCell>
-                      <TableCell><strong>Actions</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.fileName')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.brand')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.model')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.type')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.language')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.uploadDate')}</strong></TableCell>
+                      <TableCell><strong>{t('admin.table.actions')}</strong></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -825,17 +820,17 @@ const AdminPage: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <Chip 
-                              label={manual.brand || 'Unknown'} 
+                              label={manual.brand || t('admin.table.unknown')} 
                               size="small" 
                               variant="outlined"
                               sx={{ opacity: isBeingDeleted ? 0.6 : 1 }}
                             />
                           </TableCell>
                           <TableCell sx={{ opacity: isBeingDeleted ? 0.6 : 1 }}>
-                            {manual.model || 'Unknown'}
+                            {manual.model || t('admin.table.unknown')}
                           </TableCell>
                           <TableCell sx={{ opacity: isBeingDeleted ? 0.6 : 1 }}>
-                            {manual.product_type || 'Unknown'}
+                            {manual.product_type || t('admin.table.unknown')}
                           </TableCell>
                           <TableCell>
                             <Chip 
@@ -856,7 +851,7 @@ const AdminPage: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Tooltip title="Download PDF">
+                              <Tooltip title={t('admin.downloadPDF')}>
                                 <IconButton 
                                   size="small" 
                                   color="primary"
@@ -867,7 +862,7 @@ const AdminPage: React.FC = () => {
                                   <DownloadIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title={isBeingDeleted ? "Deleting..." : "Delete Manual"}>
+                              <Tooltip title={isBeingDeleted ? t('admin.deleting') : t('admin.deleteManual')}>
                                 <IconButton 
                                   size="small" 
                                   color="error"
@@ -897,11 +892,10 @@ const AdminPage: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog.open} onClose={handleDeleteCancel}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogTitle>{t('admin.confirmDeletionTitle')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{deleteDialog.manual?.name}"?
-            This action cannot be undone and will remove the manual from the system permanently.
+            {t('admin.confirmDeletionText')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -909,7 +903,7 @@ const AdminPage: React.FC = () => {
             onClick={handleDeleteCancel}
             disabled={deleteDialog.isDeleting}
           >
-            Cancel
+            {t('admin.cancel')}
           </Button>
           <Button 
             onClick={handleDeleteConfirm} 
@@ -918,7 +912,7 @@ const AdminPage: React.FC = () => {
             disabled={deleteDialog.isDeleting}
             startIcon={deleteDialog.isDeleting ? <CircularProgress size={16} /> : null}
           >
-            {deleteDialog.isDeleting ? 'Deleting...' : 'Delete'}
+            {deleteDialog.isDeleting ? t('admin.deleting') : t('admin.delete')}
           </Button>
         </DialogActions>
       </Dialog>

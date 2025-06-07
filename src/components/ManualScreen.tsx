@@ -562,10 +562,10 @@ const ManualScreen: React.FC = () => {
         {manuals.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              No manuals available yet
+              {t('manualScreen.noManuals.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Our manual database is being updated. Please check back soon.
+              {t('manualScreen.noManuals.subtitle')}
             </Typography>
           </Box>
         ) : (
@@ -592,7 +592,7 @@ const ManualScreen: React.FC = () => {
                   </Typography>
                   {manual.isDemoData && (
                     <Chip 
-                      label="Demo" 
+                      label={t('manualScreen.details.demo')}
                       size="small" 
                       sx={{ 
                         backgroundColor: '#FF9800',
@@ -607,10 +607,10 @@ const ManualScreen: React.FC = () => {
                   {manual.product_type}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Year: {manual.year}
+                  {t('manualScreen.details.year')}: {manual.year}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                  Language: {manual.language?.toUpperCase()}
+                  {t('manualScreen.details.language')}: {manual.language?.toUpperCase()}
                 </Typography>
                 {manual.isDemoData && (
                   <Typography 
@@ -618,7 +618,7 @@ const ManualScreen: React.FC = () => {
                     color="text.secondary" 
                     sx={{ mt: 1, display: 'block' }}
                   >
-                    Sample data for demonstration
+                    {t('manualScreen.details.demoText')}
                   </Typography>
                 )}
                 <Box sx={{ flexGrow: 1 }} />
