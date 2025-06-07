@@ -147,6 +147,18 @@ const ManualScreen: React.FC = () => {
               file_id: file.file_id,
               filename: file.name
             }));
+
+          // Remove duplicates based on brand, model, and product type combination
+          filteredManuals = filteredManuals.reduce((unique: ManualMetadata[], manual) => {
+            const key = `${manual.brand}-${manual.model}-${manual.product_type}`.toLowerCase();
+            const exists = unique.find(m => 
+              `${m.brand}-${m.model}-${m.product_type}`.toLowerCase() === key
+            );
+            if (!exists) {
+              unique.push(manual);
+            }
+            return unique;
+          }, []);
           
           console.log('Filtered manuals for home_appliances:', filteredManuals);
           
@@ -200,6 +212,18 @@ const ManualScreen: React.FC = () => {
               file_id: file.file_id,
               filename: file.name
             }));
+
+          // Remove duplicates based on brand, model, and product type combination
+          filteredManuals = filteredManuals.reduce((unique: ManualMetadata[], manual) => {
+            const key = `${manual.brand}-${manual.model}-${manual.product_type}`.toLowerCase();
+            const exists = unique.find(m => 
+              `${m.brand}-${m.model}-${m.product_type}`.toLowerCase() === key
+            );
+            if (!exists) {
+              unique.push(manual);
+            }
+            return unique;
+          }, []);
           
           // If no matches found, show demo data
           if (filteredManuals.length === 0) {
@@ -248,6 +272,18 @@ const ManualScreen: React.FC = () => {
               file_id: file.file_id,
               filename: file.name
             }));
+
+          // Remove duplicates based on brand, model, and product type combination
+          filteredManuals = filteredManuals.reduce((unique: ManualMetadata[], manual) => {
+            const key = `${manual.brand}-${manual.model}-${manual.product_type}`.toLowerCase();
+            const exists = unique.find(m => 
+              `${m.brand}-${m.model}-${m.product_type}`.toLowerCase() === key
+            );
+            if (!exists) {
+              unique.push(manual);
+            }
+            return unique;
+          }, []);
           
           // If no matches found, show demo data
           if (filteredManuals.length === 0) {
@@ -393,6 +429,18 @@ const ManualScreen: React.FC = () => {
               file_id: file.file_id,
               filename: file.name
             }));
+
+          // Remove duplicates based on brand, model, and product type combination
+          filteredManuals = filteredManuals.reduce((unique: ManualMetadata[], manual) => {
+            const key = `${manual.brand}-${manual.model}-${manual.product_type}`.toLowerCase();
+            const exists = unique.find(m => 
+              `${m.brand}-${m.model}-${m.product_type}`.toLowerCase() === key
+            );
+            if (!exists) {
+              unique.push(manual);
+            }
+            return unique;
+          }, []);
           
           // If no files match, create demo data based on category
           if (filteredManuals.length === 0) {
