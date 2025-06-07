@@ -13,6 +13,15 @@
   "didThisHelp": "Did this help?",
   "yes": "Yes",
   "no": "No",
+  "chat": {
+    "speak": "Listen to response",
+    "pdfViewer": "Manual Viewer",
+    "pdfPlaceholder": "PDF viewer will be displayed here",
+    "inputPlaceholder": "Ask a question about the manual...",
+    "send": "Send",
+    "helpful": "This was helpful",
+    "notHelpful": "This was not helpful"
+  },
   "rateFeedback": {
     "title": "Rate the Response",
     "question": "How helpful was this response?",

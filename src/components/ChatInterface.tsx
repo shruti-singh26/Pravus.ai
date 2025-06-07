@@ -23,6 +23,7 @@ import {
   Send as SendIcon, 
   ThumbUp as ThumbUpIcon,
   ThumbDown as ThumbDownIcon,
+  VolumeUp as VolumeUpIcon,
 } from '@mui/icons-material';
 // @ts-ignore
 import ReactMarkdown from 'react-markdown';
@@ -316,6 +317,83 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
+
+  // Add state for speech
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechSynthesis = window.speechSynthesis;
+  
+  // Function to stop any ongoing speech
+  const stopSpeaking = () => {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+  
+  // Function to speak text
+  const speakText = (text: string) => {
+    // Stop any ongoing speech
+    stopSpeaking();
+    
+    try {
+      // Remove markdown formatting and clean up the text
+      const cleanText = text
+        .replace(/[#*`]/g, '') // Remove markdown symbols
+        .replace(/\n/g, '. ') // Replace newlines with periods for better pausing
+        .replace(/\s+/g, ' ') // Normalize spaces
+        .trim();
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      
+      // Set language based on current UI language
+      utterance.lang = i18n.language;
+      
+      // Adjust speech parameters for better clarity
+      utterance.rate = 1.0; // Normal speed
+      utterance.pitch = 1.0; // Normal pitch
+      utterance.volume = 1.0; // Full volume
+      
+      // Handle speech events
+      utterance.onstart = () => {
+        console.log('Started speaking');
+        setIsSpeaking(true);
+      };
+      
+      utterance.onend = () => {
+        console.log('Finished speaking');
+        setIsSpeaking(false);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setIsSpeaking(false);
+      };
+      
+      // Start speaking
+      speechSynthesis.speak(utterance);
+      
+      // Chrome bug workaround: speech can sometimes end prematurely
+      const intervalId = setInterval(() => {
+        if (speechSynthesis.speaking) {
+          speechSynthesis.pause();
+          speechSynthesis.resume();
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 14000);
+      
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
+      setIsSpeaking(false);
+    }
+  };
+  
+  // Stop speaking when component unmounts or language changes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [i18n.language]);
 
   // Set the language from URL parameter
   useEffect(() => {
@@ -668,7 +746,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
                   <MessageContent>
                     <Avatar>P</Avatar>
                     <Box sx={{ width: '100%' }}>
-                      <FormattedMessage text={message.text} />
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <FormattedMessage text={message.text} />
+                        </Box>
+                        <Tooltip title={t('chat.speak')} placement="top">
+                          <IconButton 
+                            onClick={() => speakText(message.text)}
+                            disabled={isSpeaking}
+                            size="small"
+                            sx={{ 
+                              ml: 1,
+                              color: isSpeaking ? 'primary.main' : 'text.secondary',
+                              '&:hover': {
+                                color: 'primary.main',
+                              }
+                            }}
+                          >
+                            <VolumeUpIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                       {message.showFeedback && (
                         <Feedback 
                           onFeedbackSubmit={(isPositive) => handleFeedbackSubmit(message.id, isPositive)} 
