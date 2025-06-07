@@ -17,8 +17,6 @@ from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, MANUAL_FIELDS, DEFAULT_LLM
 from tools import retrieve_tool, summarize_tool, translate_tool,greet_tool, help_tool, no_manuals_tool, no_matching_manuals_tool, no_context_tool, generate_tool,clarify_tool
 
 from PravusAgent import PravusAgent
-from KnowledgeArticleAgent import KnowledgeArticleAgent
-
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -42,10 +40,6 @@ llm_service = LLMService()
 translator = Translator()
 retriever = doc_processor.get_retriever()
 
-knowledge_retriever = doc_processor.get_knowledge_retriever()  # Implement this in your doc_processor
-knowledge_agent = KnowledgeArticleAgent(knowledge_retriever, llm_service)
-
-
 # Initialize the PravusAgent with the necessary components
 tools = {
     'greet': greet_tool,
@@ -60,7 +54,7 @@ tools = {
     'clarify': clarify_tool
 }                            # Replace with actual tools if needed
 
-pravus_agent  = PravusAgent(retriever, llm_service, tools,knowledge_agent=knowledge_agent)
+pravus_agent  = PravusAgent(retriever, llm_service, tools)
 
 # Log at startup if no documents are available
 if not doc_processor.documents:

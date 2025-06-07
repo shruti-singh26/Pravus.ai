@@ -158,7 +158,6 @@ class DocumentProcessor:
         self.embeddings = AzureOpenAIEmbeddings()
         self.embedding_dimensions = 1536  # Azure OpenAI embeddings are 1536-dimensional
         
-        
         # Create vector store directory if it doesn't exist
         os.makedirs(VECTOR_DB_PATH, exist_ok=True)
         
@@ -185,27 +184,6 @@ class DocumentProcessor:
                 self.metadata = {}
         
         print(f"DocumentProcessor initialization complete with {len(self.documents)} documents using Azure OpenAI embeddings.")
-
-        # --- Knowledge Article Index ---
-        self.knowledge_documents = []
-        self.knowledge_index = faiss.IndexFlatL2(self.embedding_dimensions)
-        # Load knowledge articles (those with filename starting with "Kart")
-        self.knowledge_documents = [
-            doc for doc in self._load_documents()
-            if doc.metadata.get('filename', '').startswith('Kart')
-        ]
-        if self.knowledge_documents:
-            texts = [doc.page_content for doc in self.knowledge_documents]
-            try:
-                embeddings = self.embeddings.embed_documents(texts)
-                self.knowledge_index.add(np.array(embeddings).astype('float32'))
-                print("✅ Knowledge Article FAISS index loaded successfully")
-            except Exception as e:
-                print(f"❌ Error loading Knowledge Article FAISS index: {str(e)}")
-                self.knowledge_index = faiss.IndexFlatL2(self.embedding_dimensions)
-                self.knowledge_documents = []
-
-
     
     def _save_index(self):
         """Save FAISS index to disk with proper error handling."""
@@ -1025,24 +1003,3 @@ class DocumentProcessor:
         
         # Combine scores (weighted average)
         return (common_word_score * 0.6) + (proper_word_score * 0.4) 
-    
-    def search_knowledge_articles(self, query: str, top_k: int = 3):
-        """Semantic search in knowledge articles (filename starts with 'Kart')."""
-        if not self.knowledge_documents:
-         print("No knowledge articles available for search")
-         return []
-        print(f"🔍 Searching knowledge articles for: '{query}'")
-        query_embedding = self.embeddings.embed_query(query)
-        D, I = self.knowledge_index.search(
-        np.array([query_embedding], dtype=np.float32),
-        k=min(top_k, len(self.knowledge_documents))
-        )
-        results = []
-        for idx in I[0]:
-         if idx < len(self.knowledge_documents):
-            results.append(self.knowledge_documents[idx])
-        return results
-
-    def get_knowledge_retriever(self):
-        # Return a function or object that can search your knowledge article vector DB
-        return self.search_knowledge_articles  # Example
