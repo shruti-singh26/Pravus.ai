@@ -689,7 +689,7 @@ class DocumentProcessor:
                 # Skip deleted manuals
                 if not include_deleted and manual_meta.get('is_deleted', False):
                     continue
-                
+                    
                 # Check brand/model match
                 manual_brand = manual_meta.get('brand', '').strip()
                 manual_model = manual_meta.get('model', '').strip()

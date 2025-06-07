@@ -1,4 +1,5 @@
 import time
+from googletrans import Translator
 
 def summarize_tool(docs, context):
     llm_service = context['llm_service']
@@ -8,7 +9,6 @@ def greet_tool(context):
     greetings = {
         'en': "👋 Hi! I'm your Pravus.AI Assistant, ready to help you understand and get the most out of your electronic devices. How can I assist you today?",
         'es': "👋 ¡Hola! Soy tu Asistente Pravus.AI, listo para ayudarte a entender y aprovechar al máximo tus dispositivos electrónicos. ¿Cómo puedo ayudarte hoy?",
-        'hi': "👋 नमस्ते! मैं आपका Pravus.AI सहायक हूं, आपके इलेक्ट्रॉनिक उपकरणों को समझने और उनका सर्वोत्तम उपयोग करने में मदद करने के लिए तैयार हूं। मैं आज आपकी कैसे सहायता कर सकता हूं?",
         'pl': "👋 Cześć! Jestem twoim Asystentem Pravus.AI, gotowym pomóc ci zrozumieć i wykorzystać maksymalnie twoje urządzenia elektroniczne. Jak mogę ci dziś pomóc?"
     }
     lang = context.get('response_language', 'en')
@@ -38,15 +38,43 @@ def help_tool(context):
     return help_responses.get(lang, help_responses['en'])
 
 def retrieve_tool(query, context):
+    print(f"\n🔍 RETRIEVE: Starting retrieval for query: '{query}'")
+    print(f"🔍 RETRIEVE: Context: {context}")
+    
+    # Get source language and translate query if needed
+    source_language = context.get('source_language', 'en')
+    print(f"🌐 RETRIEVE: Source language: {source_language}")
+    
+    if source_language != 'en':
+        try:
+            translator = Translator()
+            print(f"🌐 RETRIEVE: Translating query from {source_language} to English")
+            query_en = translator.translate(query, src=source_language, dest='en').text
+            print(f"🌐 RETRIEVE: Translated query: '{query_en}'")
+            query = query_en
+        except Exception as e:
+            print(f"❌ RETRIEVE: Translation error: {str(e)}")
+            print(f"❌ RETRIEVE: Proceeding with original query")
+    
     doc_processor = context['doc_processor']
     brand = context.get('brand')
     model = context.get('model')
+    
+    print(f"🔍 RETRIEVE: Searching with parameters:")
+    print(f"  - Brand: {brand}")
+    print(f"  - Model: {model}")
+    
     active_manuals = [m for m in doc_processor.metadata.values() if not m.get('is_deleted', False)]
     matching_manuals = [
         m for m in active_manuals 
         if (not brand or m.get('brand') == brand) and 
            (not model or m.get('model') == model)
     ]
+    
+    print(f"📚 RETRIEVE: Found {len(active_manuals)} active manuals")
+    print(f"📚 RETRIEVE: {len(matching_manuals)} manuals match brand/model criteria")
+    
+    print(f"🔎 RETRIEVE: Performing vector similarity search...")
     docs = doc_processor.similarity_search(
         query=query,
         brand=brand,
@@ -54,7 +82,13 @@ def retrieve_tool(query, context):
         k=4,
         include_deleted=False
     )
-    return docs, active_manuals,matching_manuals, brand, model
+    
+    print(f"✅ RETRIEVE: Found {len(docs)} relevant documents")
+    for i, doc in enumerate(docs):
+        print(f"  📄 Doc {i+1}: {doc.metadata.get('brand')} {doc.metadata.get('model')} - Page {doc.metadata.get('page')}")
+        print(f"      Preview: {doc.page_content[:100]}...")
+    
+    return docs, active_manuals, matching_manuals, brand, model
 
 def no_manuals_tool(context):
     return {

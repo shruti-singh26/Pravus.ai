@@ -38,5 +38,43 @@
     "chatError": "Lo siento, tengo problemas para conectarme al servidor. Por favor, inténtalo más tarde.",
     "languageError": "Error al cambiar el idioma. Por favor, inténtalo de nuevo.",
     "syncError": "Error al sincronizar archivos con el servidor"
+  },
+  "chat": {
+    "pdfViewer": "Visor de Manual",
+    "pdfPlaceholder": "El visor PDF se mostrará aquí",
+    "inputPlaceholder": "Haz una pregunta sobre el manual...",
+    "send": "Enviar",
+    "helpful": "Esto fue útil",
+    "notHelpful": "Esto no fue útil",
+    "welcome": "¡Hola, soy tu Asistente Pravus.AI!",
+    "welcomeManual": "Estoy aquí para ayudarte a sacar el máximo provecho de tu {{brand}} {{model}}. Permíteme ser tu guía para:",
+    "welcomeGeneral": "Soy tu experto en productos dedicado, listo para ayudarte a entender y aprovechar al máximo tus dispositivos electrónicos.",
+    "features": {
+      "title": "Características del Producto",
+      "understand": "Entender todas las características y configuraciones",
+      "performance": "Obtener el mejor rendimiento",
+      "discover": "Descubrir capacidades ocultas"
+    },
+    "setup": {
+      "title": "Configuración y Soporte",
+      "installation": "Guía de instalación fácil",
+      "configuration": "Configuración paso a paso",
+      "troubleshooting": "Solución rápida de problemas"
+    },
+    "maintenance": {
+      "title": "Consejos y Cuidados",
+      "practices": "Mejores prácticas de mantenimiento",
+      "tips": "Consejos de optimización",
+      "safety": "Pautas de seguridad"
+    },
+    "capabilities": {
+      "title": "Puedo Ayudarte Con",
+      "features": "Guía completa de características del producto",
+      "support": "Soporte de configuración e instalación",
+      "troubleshooting": "Asistencia en resolución de problemas",
+      "maintenance": "Consejos de mantenimiento y cuidado"
+    },
+    "assistPrompt": "¿Cómo puedo ayudarte hoy con tu {{brand}} {{model}}?",
+    "generalPrompt": "¿Cómo puedo ayudarte hoy?"
   }
 } 

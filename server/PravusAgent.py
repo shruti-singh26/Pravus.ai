@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import time
 import re
 from WarrantyAgent import WarrantyAgent
+from googletrans import Translator
 
 class ConversationMemory:
     """Memory system for tracking conversation history"""
@@ -719,6 +720,37 @@ class PravusAgent:
     def act(self, user_input: str, context: Dict) -> Dict:
         print(f"\n🚀 ACT: Starting to process user input: '{user_input}'")
         
+        # Get source language from context or detect it
+        source_language = context.get('source_language', 'en')
+        if source_language == 'en':
+            try:
+                translator = Translator()
+                detected = translator.detect(user_input)
+                if detected.lang != 'en':
+                    print(f"🌐 ACT: Detected input language: {detected.lang}")
+                    source_language = detected.lang
+                    context['source_language'] = source_language
+            except Exception as e:
+                print(f"❌ ACT: Language detection error: {str(e)}")
+        
+        print(f"🌐 ACT: Source language: {source_language}")
+        print(f"🌐 ACT: Target language: {context.get('target_language', 'en')}")
+        
+        # Store original query for response translation
+        original_query = user_input
+        
+        # Translate query to English if needed
+        if source_language != 'en':
+            try:
+                translator = Translator()
+                print(f"🌐 ACT: Translating query to English")
+                user_input = translator.translate(user_input, src=source_language, dest='en').text
+                print(f"🌐 ACT: Translated query: '{user_input}'")
+            except Exception as e:
+                print(f"❌ ACT: Translation error: {str(e)}")
+                print(f"❌ ACT: Proceeding with original query")
+                user_input = original_query
+        
         print(f"📊 ACT: Calling monitor...")
         monitor_state = self.monitor(user_input, context)
         print(f"📊 ACT: Monitor result: {monitor_state}")
@@ -738,8 +770,11 @@ class PravusAgent:
         print(f"🧠 ACT: Enhancing context with memory...")
         enhanced_context = self.enhance_context_with_memory(user_input, context, monitor_state)
         print(f"🧠 ACT: Enhanced context keys: {list(enhanced_context.keys())}")
-
-
+        
+        # Add language information to context
+        enhanced_context['source_language'] = source_language
+        enhanced_context['target_language'] = context.get('target_language', source_language)
+        
         # Get latest problem context from memory
         latest_problem_context = self.memory.get_latest_problem_context()
         # Merge into enhanced_context if missing

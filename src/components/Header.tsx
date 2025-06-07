@@ -75,7 +75,6 @@ interface HeaderProps {
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
-  { code: 'hi', label: 'हिंदी' },
   { code: 'pl', label: 'Polski' }
 ];
 
@@ -126,6 +125,27 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleLanguageSelect = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
+    
+    // If we're in the chat interface, update the URL with the new language
+    if (location.pathname.startsWith('/chat/')) {
+      // Get the current state to preserve manual and categoryId
+      const currentState = location.state;
+      // Navigate to the new language URL while preserving the state
+      navigate(`/chat/${languageCode}`, { state: currentState });
+    }
+    
+    // If we're in the manual screen, reload with the new language
+    if (location.pathname.startsWith('/category/')) {
+      // Preserve the current state and update the language
+      const currentState = location.state || {};
+      navigate(location.pathname, {
+        state: {
+          ...currentState,
+          selectedLanguage: languageCode
+        }
+      });
+    }
+    
     handleLanguageMenuClose();
   };
 

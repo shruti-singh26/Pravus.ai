@@ -14,7 +14,7 @@ import {
   Chip,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ManualMetadata } from '../services/api';
 import * as apiService from '../services/api';
 import { Download as DownloadIcon } from '@mui/icons-material';
@@ -91,13 +91,16 @@ const LoadingContainer = styled(Box)(({ theme }) => ({
 }));
 
 const ManualScreen: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { categoryId } = useParams<{ categoryId: string }>();
   const [manuals, setManuals] = useState<ManualMetadata[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const location = useLocation();
   const navigate = useNavigate();
+
+  // Get the selected language from location state or i18n
+  const selectedLanguage = location.state?.selectedLanguage || i18n.language;
 
   useEffect(() => {
     const loadManualsFromAPI = async () => {
@@ -108,8 +111,9 @@ const ManualScreen: React.FC = () => {
         const files = await apiService.getFiles();
         console.log('Fetched files from API:', files);
         console.log('Current categoryId:', categoryId);
+        console.log('Current language:', selectedLanguage);
         
-        // Filter files based on category
+        // Filter files based on category and language
         let filteredManuals: ManualMetadata[] = [];
         
         if (categoryId === 'home_appliances') {
@@ -436,6 +440,13 @@ const ManualScreen: React.FC = () => {
         });
         
         console.log(`Final filtered manuals for category ${categoryId}:`, filteredManuals);
+
+        // Update the language of demo data to match selected language
+        filteredManuals = filteredManuals.map(manual => ({
+          ...manual,
+          language: manual.isDemoData ? selectedLanguage : (manual.language || selectedLanguage)
+        }));
+
         setManuals(filteredManuals);
         
       } catch (error) {
@@ -448,7 +459,7 @@ const ManualScreen: React.FC = () => {
     };
 
     loadManualsFromAPI();
-  }, [categoryId]);
+  }, [categoryId, selectedLanguage]); // Add selectedLanguage to dependencies
 
   const handleManualSelect = async (manual: ManualMetadata) => {
     try {
@@ -456,7 +467,7 @@ const ManualScreen: React.FC = () => {
       console.log('Manual data:', manual);
       console.log('Manual has file_id:', !!manual.file_id);
       console.log('Manual is demo data:', !!manual.isDemoData);
-      console.log('Manual language:', manual.language);
+      console.log('Selected language:', selectedLanguage);
       
       // Check if this is demo data
       if (manual.isDemoData) {
@@ -468,17 +479,18 @@ const ManualScreen: React.FC = () => {
       // Handle real uploaded files with file_id
       if (manual.file_id) {
         console.log('Navigating to chat for uploaded file...');
-        const language = manual.language || 'en';
-        console.log('Using language:', language);
-        console.log('Navigation path:', `/chat/${language}`);
+        // Use the selected language for navigation
+        console.log('Using language:', selectedLanguage);
+        console.log('Navigation path:', `/chat/${selectedLanguage}`);
         
-        // Navigate to chat interface
-        navigate(`/chat/${language}`, {
+        // Navigate to chat interface with the selected language
+        navigate(`/chat/${selectedLanguage}`, {
           state: {
             manual: {
               ...manual,
               brand: manual.brand || 'Unknown',
               model: manual.model || 'Unknown',
+              language: selectedLanguage, // Set the selected language
               cached: true
             },
             categoryId: categoryId
@@ -550,10 +562,10 @@ const ManualScreen: React.FC = () => {
         {manuals.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              No manuals available yet
+              {t('manualScreen.noManuals.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Our manual database is being updated. Please check back soon.
+              {t('manualScreen.noManuals.subtitle')}
             </Typography>
           </Box>
         ) : (
@@ -580,7 +592,7 @@ const ManualScreen: React.FC = () => {
                   </Typography>
                   {manual.isDemoData && (
                     <Chip 
-                      label="Demo" 
+                      label={t('manualScreen.details.demo')}
                       size="small" 
                       sx={{ 
                         backgroundColor: '#FF9800',
@@ -595,10 +607,10 @@ const ManualScreen: React.FC = () => {
                   {manual.product_type}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Year: {manual.year}
+                  {t('manualScreen.details.year')}: {manual.year}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                  Language: {manual.language?.toUpperCase()}
+                  {t('manualScreen.details.language')}: {manual.language?.toUpperCase()}
                 </Typography>
                 {manual.isDemoData && (
                   <Typography 
@@ -606,7 +618,7 @@ const ManualScreen: React.FC = () => {
                     color="text.secondary" 
                     sx={{ mt: 1, display: 'block' }}
                   >
-                    Sample data for demonstration
+                    {t('manualScreen.details.demoText')}
                   </Typography>
                 )}
                 <Box sx={{ flexGrow: 1 }} />
@@ -635,7 +647,7 @@ const ManualScreen: React.FC = () => {
                     }}
                     onClick={() => handleManualSelect(manual)}
                   >
-                    {manual.isDemoData ? 'Try Demo Chat' : 'Chat with AI Assistant'}
+                    {manual.isDemoData ? t('productDetails.demoButton') : t('productDetails.chatButton')}
                   </Button>
                   
                   {/* Download PDF Button */}
