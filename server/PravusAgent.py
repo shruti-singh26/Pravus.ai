@@ -165,6 +165,26 @@ class ConversationMemory:
         self.issues.clear()
         print("💾 MEMORY: Cleared all conversation history")
 
+    def get_latest_problem_context(self):
+        """Return the most recent device, issue, and warranty info from conversation."""
+        context = {}
+        for turn in reversed(self.conversations):
+            meta = turn.get('metadata', {})
+            for key in ['device_type', 'brand', 'model', 'issue', 'bill_number', 'purchase_date']:
+                if key in meta and key not in context:
+                    context[key] = meta[key]
+        return context
+    def has_prompted_for_warranty(self) -> bool:
+        """Check if warranty prompt was already given in the current problem context."""
+        for turn in reversed(self.conversations):
+            meta = turn.get('metadata', {})
+            if meta.get('prompted_for') == 'warranty':
+                return True
+            # Optionally, stop searching if a new device/problem context is detected
+            # if meta.get('device_type') != self.get_latest_problem_context().get('device_type'):
+            #     break
+        return False   
+
 
 class PravusAgent:
     def __init__(self, retriever, llm, tools: Dict[str, Any]):
@@ -717,15 +737,46 @@ class PravusAgent:
         print(f"🧠 ACT: Enhancing context with memory...")
         enhanced_context = self.enhance_context_with_memory(user_input, context, monitor_state)
         print(f"🧠 ACT: Enhanced context keys: {list(enhanced_context.keys())}")
+
+
+        # Get latest problem context from memory
+        latest_problem_context = self.memory.get_latest_problem_context()
+        # Merge into enhanced_context if missing
+        for key, value in latest_problem_context.items():
+            if key not in enhanced_context or not enhanced_context[key]:
+                enhanced_context[key] = value
+
+        # Optionally, detect if this is a follow-up (no device/brand/model/issue in input)
+        is_followup = len(user_input.split()) < 5 or not any(
+            kw in user_input.lower()
+            for kw in [enhanced_context.get('device_type', ''), enhanced_context.get('brand', ''), enhanced_context.get('model', ''), enhanced_context.get('issue', '')]
+            if kw
+        )
+        enhanced_context['is_followup'] = is_followup
+
+        # --- NEW PROBLEM CONTEXT RESET LOGIC ---
+        if (
+        'device_type' in monitor_state
+        and monitor_state['device_type']
+        and monitor_state['device_type'] != latest_problem_context.get('device_type')
+        and latest_problem_context.get('device_type') is not None
+            ):
+            print("🔄 Detected new device/problem context. Optionally clearing or updating memory/context.")
+        # Optionally clear or update context for new problem
+        # self.memory.clear_memory()  # Uncomment if you want to clear all memory for new device
+        # Or, implement a more granular reset if needed
+        # --- END NEW PROBLEM CONTEXT RESET LOGIC ---
         
         # --- INSERT WARRANTY PROMPT LOGIC HERE ---
         device_type = monitor_state.get('device_type')
-        already_asked_warranty = context.get('asked_warranty', False)
+        # already_asked_warranty = context.get('asked_warranty', False)
         has_bill_number = 'bill_number' in enhanced_context
         has_purchase_date = 'purchase_date' in enhanced_context
 
-        if device_type and not already_asked_warranty and not (has_bill_number and has_purchase_date):
-            context['asked_warranty'] = True
+        if (
+            device_type
+            and not self.memory.has_prompted_for_warranty()
+            and not (has_bill_number and has_purchase_date)):
             response = (
                 "Before we proceed, could you please provide your bill number and purchase date? "
                 "This will help me check if your product is under warranty and give you the best support."
