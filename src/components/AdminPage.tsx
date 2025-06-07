@@ -331,7 +331,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
     if (!selectedFile) {
       setUploadResult({
         type: 'error',
-        message: t('admin.pleaseSelectFile')
+        message: t('admin.uploadStatus.validationError')
       });
       return;
     }
@@ -340,7 +340,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
     if (!formData.brand.trim() || !formData.model.trim()) {
       setUploadResult({
         type: 'error',
-        message: t('admin.brandAndModelRequired')
+        message: t('admin.uploadStatus.validationError')
       });
       return;
     }
@@ -358,7 +358,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
       const response: FileUploadResponse = await uploadFile(selectedFile, {
         brand: formData.brand.trim(),
         model: formData.model.trim(),
-        product_type: formData.product_type.trim() || 'Unknown',
+        product_type: formData.product_type.trim() || t('admin.table.unknown'),
         year: formData.year.trim() || new Date().getFullYear().toString(),
         language: formData.language
       });
@@ -368,7 +368,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
 
       setUploadResult({
         type: 'success',
-        message: `${t('admin.successfullyUploaded')} ${response.filename}`
+        message: t('admin.uploadStatus.success')
       });
 
       // Auto-dismiss success notification after 4 seconds
@@ -398,13 +398,10 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
     } catch (error: any) {
       setUploadResult({
         type: 'error',
-        message: error.message || t('admin.uploadFailed')
+        message: error.message || t('admin.errors.uploadFailed')
       });
     } finally {
       setIsUploading(false);
-      setTimeout(() => {
-        setUploadProgress(0);
-      }, 2000);
     }
   };
 
@@ -636,7 +633,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label={t('admin.brand')}
+                    label={t('admin.table.brand')}
                     value={formData.brand}
                     onChange={handleInputChange('brand')}
                     placeholder={t('admin.brandPlaceholder')}
@@ -647,7 +644,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label={t('admin.model')}
+                    label={t('admin.table.model')}
                     value={formData.model}
                     onChange={handleInputChange('model')}
                     placeholder={t('admin.modelPlaceholder')}
@@ -659,7 +656,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                   <TextField
                     fullWidth
                     select
-                    label={t('admin.productType')}
+                    label={t('admin.table.type')}
                     value={formData.product_type}
                     onChange={handleInputChange('product_type')}
                   >
@@ -677,7 +674,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                 <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
                   <TextField
                     fullWidth
-                    label={t('admin.year')}
+                    label={t('admin.table.year')}
                     value={formData.year}
                     onChange={handleInputChange('year')}
                     placeholder={t('admin.yearPlaceholder')}
@@ -690,7 +687,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                   <TextField
                     fullWidth
                     select
-                    label={t('admin.language')}
+                    label={t('admin.table.language')}
                     value={formData.language}
                     onChange={handleInputChange('language')}
                   >
@@ -709,12 +706,12 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="body2" sx={{ mr: 2 }}>
-                    {t('admin.processingManual')}
+                    {t('admin.uploadStatus.processing')}
                   </Typography>
                   <CircularProgress size={16} />
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                  {t('admin.largeFilesMayTakeSeveralMinutes')}
+                  {t('admin.uploadStatus.largeFileWarning')}
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
@@ -740,7 +737,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                   borderRadius: 3,
                 }}
               >
-                {isUploading ? t('admin.processing') : t('admin.uploadManual')}
+                {isUploading ? t('admin.actions.processing') : t('admin.actions.upload')}
               </Button>
             </Box>
           </TabPanel>
@@ -757,7 +754,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                 onClick={loadManuals}
                 disabled={loading}
               >
-                {t('admin.refresh')}
+                {t('admin.actions.refresh')}
               </Button>
             </Box>
 
@@ -795,7 +792,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                       
                       return (
                         <TableRow 
-                          key={manual.file_id || manual.name}
+                          key={manualId}
                           sx={{
                             opacity: isBeingDeleted ? 0.5 : 1,
                             transition: 'opacity 0.3s ease',
@@ -851,30 +848,23 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
                           </TableCell>
                           <TableCell>
                             <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Tooltip title={t('admin.downloadPDF')}>
-                                <IconButton 
-                                  size="small" 
-                                  color="primary"
+                              <Tooltip title={t('admin.actions.download')}>
+                                <IconButton
+                                  size="small"
                                   onClick={() => handleDownload(manual)}
                                   disabled={isBeingDeleted}
-                                  sx={{ opacity: isBeingDeleted ? 0.4 : 1 }}
                                 >
-                                  <DownloadIcon />
+                                  <DownloadIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title={isBeingDeleted ? t('admin.deleting') : t('admin.deleteManual')}>
-                                <IconButton 
-                                  size="small" 
-                                  color="error"
+                              <Tooltip title={t('admin.actions.delete')}>
+                                <IconButton
+                                  size="small"
                                   onClick={() => handleDeleteClick(manual)}
                                   disabled={isBeingDeleted}
-                                  sx={{ opacity: isBeingDeleted ? 0.4 : 1 }}
+                                  color="error"
                                 >
-                                  {isBeingDeleted ? (
-                                    <CircularProgress size={16} color="error" />
-                                  ) : (
-                                    <DeleteIcon />
-                                  )}
+                                  <DeleteIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             </Box>
@@ -892,10 +882,10 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog.open} onClose={handleDeleteCancel}>
-        <DialogTitle>{t('admin.confirmDeletionTitle')}</DialogTitle>
+        <DialogTitle>{t('admin.confirmDeletion.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {t('admin.confirmDeletionText')}
+            {t('admin.confirmDeletion.text')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -903,7 +893,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
             onClick={handleDeleteCancel}
             disabled={deleteDialog.isDeleting}
           >
-            {t('admin.cancel')}
+            {t('admin.confirmDeletion.cancel')}
           </Button>
           <Button 
             onClick={handleDeleteConfirm} 
@@ -912,7 +902,7 @@ ${t('admin.pleaseRenameOrDeleteExisting')}
             disabled={deleteDialog.isDeleting}
             startIcon={deleteDialog.isDeleting ? <CircularProgress size={16} /> : null}
           >
-            {deleteDialog.isDeleting ? t('admin.deleting') : t('admin.delete')}
+            {deleteDialog.isDeleting ? t('admin.confirmDeletion.deleting') : t('admin.confirmDeletion.confirm')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -127,6 +127,11 @@ i18n
             uploadTab: 'Upload Manual',
             manageTab: 'Manage Manuals',
             selectFile: 'Select File',
+            productInformation: 'Product Information',
+            brandPlaceholder: 'Enter manufacturer name (e.g., Samsung, LG)',
+            modelPlaceholder: 'Enter model number or name (e.g., QN65Q70A)',
+            yearPlaceholder: 'Enter manufacturing year',
+            selectProductType: 'Select product type',
             dropzone: {
               title: 'Drop your file here or click to browse',
               subtitle: 'Supported formats: PDF, TXT, DOC, DOCX (Max 16MB)',
@@ -145,6 +150,37 @@ i18n
             noManuals: {
               title: 'No manuals uploaded yet',
               subtitle: 'Upload your first manual using the Upload tab'
+            },
+            uploadStatus: {
+              processing: 'Processing manual...',
+              pleaseWait: 'Please wait while we process your file',
+              largeFileWarning: 'Large files may take several minutes to process',
+              success: 'Manual successfully uploaded',
+              error: 'Failed to upload manual',
+              validationError: 'Please fill in all required fields'
+            },
+            confirmDeletion: {
+              title: 'Confirm Deletion',
+              text: 'Are you sure you want to delete this manual? This action cannot be undone.',
+              cancel: 'Cancel',
+              confirm: 'Delete',
+              deleting: 'Deleting...'
+            },
+            actions: {
+              upload: 'Upload Manual',
+              processing: 'Processing...',
+              refresh: 'Refresh List',
+              delete: 'Delete',
+              download: 'Download',
+              view: 'View'
+            },
+            errors: {
+              failedToLoad: 'Failed to load manuals',
+              requestTimeout: 'Request timed out',
+              connectionError: 'Cannot connect to server',
+              uploadFailed: 'Upload failed',
+              deleteFailed: 'Delete failed',
+              downloadFailed: 'Download failed'
             }
           },
           manualScreen: {
@@ -274,6 +310,11 @@ i18n
             uploadTab: 'Subir Manual',
             manageTab: 'Gestionar Manuales',
             selectFile: 'Seleccionar Archivo',
+            productInformation: 'Información del Producto',
+            brandPlaceholder: 'Ingrese nombre del fabricante (ej. Samsung, LG)',
+            modelPlaceholder: 'Ingrese número o nombre del modelo (ej. QN65Q70A)',
+            yearPlaceholder: 'Ingrese año de fabricación',
+            selectProductType: 'Seleccione tipo de producto',
             dropzone: {
               title: 'Arrastra tu archivo aquí o haz clic para buscar',
               subtitle: 'Formatos soportados: PDF, TXT, DOC, DOCX (Máx 16MB)',
@@ -292,6 +333,37 @@ i18n
             noManuals: {
               title: 'Aún no hay manuales subidos',
               subtitle: 'Sube tu primer manual usando la pestaña de Subir'
+            },
+            uploadStatus: {
+              processing: 'Procesando manual...',
+              pleaseWait: 'Por favor espera mientras procesamos tu archivo',
+              largeFileWarning: 'Los archivos grandes pueden tardar varios minutos en procesarse',
+              success: 'Manual subido exitosamente',
+              error: 'Error al subir el manual',
+              validationError: 'Por favor completa todos los campos requeridos'
+            },
+            confirmDeletion: {
+              title: 'Confirmar Eliminación',
+              text: '¿Estás seguro de que deseas eliminar este manual? Esta acción no se puede deshacer.',
+              cancel: 'Cancelar',
+              confirm: 'Eliminar',
+              deleting: 'Eliminando...'
+            },
+            actions: {
+              upload: 'Subir Manual',
+              processing: 'Procesando...',
+              refresh: 'Actualizar Lista',
+              delete: 'Eliminar',
+              download: 'Descargar',
+              view: 'Ver'
+            },
+            errors: {
+              failedToLoad: 'Error al cargar los manuales',
+              requestTimeout: 'La solicitud expiró',
+              connectionError: 'No se puede conectar al servidor',
+              uploadFailed: 'Error al subir',
+              deleteFailed: 'Error al eliminar',
+              downloadFailed: 'Error al descargar'
             }
           },
           manualScreen: {
@@ -421,6 +493,11 @@ i18n
             uploadTab: 'Prześlij Instrukcję',
             manageTab: 'Zarządzaj Instrukcjami',
             selectFile: 'Wybierz Plik',
+            productInformation: 'Informacje o Produkcie',
+            brandPlaceholder: 'Wprowadź nazwę producenta (np. Samsung, LG)',
+            modelPlaceholder: 'Wprowadź numer lub nazwę modelu (np. QN65Q70A)',
+            yearPlaceholder: 'Wprowadź rok produkcji',
+            selectProductType: 'Wybierz typ produktu',
             dropzone: {
               title: 'Przeciągnij plik tutaj lub kliknij, aby przeglądać',
               subtitle: 'Obsługiwane formaty: PDF, TXT, DOC, DOCX (Maks. 16MB)',
@@ -439,6 +516,37 @@ i18n
             noManuals: {
               title: 'Brak przesłanych instrukcji',
               subtitle: 'Prześlij swoją pierwszą instrukcję używając zakładki Prześlij'
+            },
+            uploadStatus: {
+              processing: 'Przetwarzanie instrukcji...',
+              pleaseWait: 'Proszę czekać, trwa przetwarzanie pliku',
+              largeFileWarning: 'Przetwarzanie dużych plików może potrwać kilka minut',
+              success: 'Instrukcja została pomyślnie przesłana',
+              error: 'Błąd podczas przesyłania instrukcji',
+              validationError: 'Proszę wypełnić wszystkie wymagane pola'
+            },
+            confirmDeletion: {
+              title: 'Potwierdź Usunięcie',
+              text: 'Czy na pewno chcesz usunąć tę instrukcję? Tej operacji nie można cofnąć.',
+              cancel: 'Anuluj',
+              confirm: 'Usuń',
+              deleting: 'Usuwanie...'
+            },
+            actions: {
+              upload: 'Prześlij Instrukcję',
+              processing: 'Przetwarzanie...',
+              refresh: 'Odśwież Listę',
+              delete: 'Usuń',
+              download: 'Pobierz',
+              view: 'Wyświetl'
+            },
+            errors: {
+              failedToLoad: 'Nie udało się załadować instrukcji',
+              requestTimeout: 'Przekroczono limit czasu żądania',
+              connectionError: 'Nie można połączyć się z serwerem',
+              uploadFailed: 'Przesyłanie nie powiodło się',
+              deleteFailed: 'Usuwanie nie powiodło się',
+              downloadFailed: 'Pobieranie nie powiodło się'
             }
           },
           manualScreen: {
