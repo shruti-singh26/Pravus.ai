@@ -213,19 +213,49 @@ def download_manual(filename):
 def chat():
     data = request.json
     user_message = data['message']
+    source_language = data.get('source_language', 'en')
+    response_language = data.get('responseLanguage', 'en')
+    
+    print(f"\n🌐 CHAT: Received message in {source_language}")
+    print(f"🌐 CHAT: Original message: '{user_message}'")
+    
+    # Translate to English if needed
+    if source_language != 'en':
+        try:
+            print(f"🌐 CHAT: Translating to English...")
+            translated = translator.translate(user_message, src=source_language, dest='en')
+            user_message = translated.text
+            print(f"🌐 CHAT: Translated message: '{user_message}'")
+        except Exception as e:
+            print(f"❌ CHAT: Translation error: {str(e)}")
+            print(f"❌ CHAT: Proceeding with original message")
+    
     # Get the flag from the frontend, default to False if not present
-    awaiting_clarification = data.get('awaiting_clarification',True)
+    awaiting_clarification = data.get('awaiting_clarification', True)
     context = {
         'brand': data.get('brand'),
         'model': data.get('model'),
-        'response_language': data.get('responseLanguage', 'en'),
+        'response_language': response_language,
+        'source_language': source_language,
         'doc_processor': doc_processor,
         'llm_service': llm_service,
-        # 'translator': translator,
         'awaiting_clarification': awaiting_clarification
     }
+    
     response = pravus_agent.act(user_message, context)
-    response['awaiting_clarification'] = context.get('awaiting_clarification',True)
+    response['awaiting_clarification'] = context.get('awaiting_clarification', True)
+    
+    # Translate response back if needed
+    if response_language != 'en' and response.get('response'):
+        try:
+            print(f"🌐 CHAT: Translating response to {response_language}...")
+            translated = translator.translate(response['response'], src='en', dest=response_language)
+            response['response'] = translated.text
+            print(f"🌐 CHAT: Translated response: '{response['response']}'")
+        except Exception as e:
+            print(f"❌ CHAT: Response translation error: {str(e)}")
+            print(f"❌ CHAT: Returning English response")
+    
     return jsonify(response)
 
 @app.route('/api/upload', methods=['POST'])
@@ -728,6 +758,16 @@ Summary:"""
             'error': 'Failed to summarize conversation',
             'details': str(e)
         }), 500
+
+@app.route('/api/clear-memory', methods=['POST'])
+def clear_memory():
+    """Clear the PravusAgent's conversation memory"""
+    try:
+        pravus_agent.clear_conversation_memory()
+        return jsonify({'success': True, 'message': 'Memory cleared successfully'})
+    except Exception as e:
+        print(f"❌ Error clearing memory: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000) 

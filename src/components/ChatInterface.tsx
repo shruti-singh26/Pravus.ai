@@ -324,6 +324,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
     }
   }, [language, i18n]);
 
+  // Clear memory when unmounting
+  useEffect(() => {
+    return () => {
+      // Clear memory when component unmounts
+      fetch('http://localhost:5000/api/clear-memory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).catch(error => {
+        console.error('Failed to clear memory:', error);
+      });
+    };
+  }, []);
+
   // Update welcome message when language changes
   useEffect(() => {
     const welcomeMessage = manual 
@@ -540,20 +555,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
     setTimeout(scrollToBottom, 200);
 
     try {
+      // Always process the query in English but show response in selected language
       const data = await sendMessage(
         inputValue,
-        i18n.language,
-        i18n.language,
+        'en', // Always send as English for processing
+        currentLanguage, // Get response in user's selected language
         manual?.brand,
         manual?.model,
-        { awaiting_clarification: awaitingClarification,
-          conversation: conversation
-         }
+        { 
+          awaiting_clarification: awaitingClarification,
+          conversation: conversation,
+          source_language: currentLanguage // Tell backend what language the user is actually using
+        }
       );
 
       setAwaitingClarification(data.awaiting_clarification);
-
-      setConversation(data.conversation); // <-- Update conversation from backend
+      setConversation(data.conversation);
       
       const botMessage: Message = {
         id: Date.now() + 1,
@@ -563,7 +580,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
       };
       setMessages(prev => [...prev, botMessage]);
 
-      // Scroll to bottom after bot response with better options
+      // Scroll to bottom after bot response
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ 
           behavior: 'smooth',
@@ -576,7 +593,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ toggleColorMode, mode }) 
       console.error('Error:', error);
       const errorMessage: Message = {
         id: Date.now() + 1,
-        text: 'Sorry, I encountered an error while processing your request. Please try again.',
+        text: t('notifications.chatError'),
         sender: 'bot',
         showFeedback: true,
       };

@@ -65,7 +65,11 @@ export const sendMessage = async (
   responseLanguage: string = 'en',
   brand?: string,
   model?: string,
-   context?: any 
+  context?: {
+    awaiting_clarification?: boolean;
+    conversation?: any[];
+    source_language?: string;
+  }
 ): Promise<any> => {
   const response = await axios.post(`${API_BASE_URL}/chat`, {
     message,
@@ -73,7 +77,12 @@ export const sendMessage = async (
     responseLanguage,
     brand,
     model,
-    ...(context && { context }) 
+    ...(context && { 
+      context: {
+        ...context,
+        source_language: context.source_language || language
+      }
+    })
   });
   
   return response.data;
