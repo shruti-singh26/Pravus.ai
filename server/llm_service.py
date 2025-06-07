@@ -175,7 +175,6 @@ Your response must be written in the following language: {response_language}
 
 Language codes:
 - en = English
-- hi = Hindi (हिंदी)
 - es = Spanish (Español)
 - pl = Polish (Polski)
 

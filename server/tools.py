@@ -9,7 +9,6 @@ def greet_tool(context):
     greetings = {
         'en': "👋 Hi! I'm your Pravus.AI Assistant, ready to help you understand and get the most out of your electronic devices. How can I assist you today?",
         'es': "👋 ¡Hola! Soy tu Asistente Pravus.AI, listo para ayudarte a entender y aprovechar al máximo tus dispositivos electrónicos. ¿Cómo puedo ayudarte hoy?",
-        'hi': "👋 नमस्ते! मैं आपका Pravus.AI सहायक हूं, आपके इलेक्ट्रॉनिक उपकरणों को समझने और उनका सर्वोत्तम उपयोग करने में मदद करने के लिए तैयार हूं। मैं आज आपकी कैसे सहायता कर सकता हूं?",
         'pl': "👋 Cześć! Jestem twoim Asystentem Pravus.AI, gotowym pomóc ci zrozumieć i wykorzystać maksymalnie twoje urządzenia elektroniczne. Jak mogę ci dziś pomóc?"
     }
     lang = context.get('response_language', 'en')

@@ -75,7 +75,6 @@ interface HeaderProps {
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
-  { code: 'hi', label: 'हिंदी' },
   { code: 'pl', label: 'Polski' }
 ];
 
