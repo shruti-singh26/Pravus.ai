@@ -47,7 +47,7 @@ The frontend will run on http://localhost:3000
 
 1. Navigate to server directory:
 ```bash
-cd pravus-chatbot/server
+cd pravus.ai/server
 ```
 
 2. Set up a virtual environment (recommended):
